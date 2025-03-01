@@ -55,6 +55,7 @@ func main() {
 	}
 	// Auto Migrate the schema
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Paste{})
 
 	// Initialize Gin
 	r := gin.Default()
@@ -84,7 +85,7 @@ func main() {
 
 	}
 
-	// Then in your main() function, add:
+	// Swagger Docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Start server

@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"listarr-backend/models"
-	"listarr-backend/utils"
+	"memoria-backend/models"
+	"memoria-backend/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

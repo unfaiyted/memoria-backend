@@ -2,7 +2,7 @@
 package handlers
 
 import (
-	"listarr-backend/models"
+	"memoria-backend/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +10,7 @@ import (
 )
 
 // CreateUser godoc
+//
 //	@Summary		Create a new user
 //	@Description	Create a new user in the system
 //	@Tags			users
@@ -39,6 +40,7 @@ func CreateUser(db *gorm.DB) gin.HandlerFunc {
 }
 
 // GetUsers godoc
+//
 //	@Summary		List users
 //	@Description	Get all users in the system
 //	@Tags			users
@@ -66,6 +68,7 @@ func GetUsers(db *gorm.DB) gin.HandlerFunc {
 }
 
 // GetUser godoc
+//
 //	@Summary		Get a user
 //	@Description	Get a user by ID
 //	@Tags			users
@@ -88,6 +91,7 @@ func GetUser(db *gorm.DB) gin.HandlerFunc {
 }
 
 // UpdateUser godoc
+//
 //	@Summary		Update a user
 //	@Description	Update a user's information
 //	@Tags			users
@@ -119,6 +123,7 @@ func UpdateUser(db *gorm.DB) gin.HandlerFunc {
 }
 
 // DeleteUser godoc
+//
 //	@Summary		Delete a user
 //	@Description	Delete a user by ID
 //	@Tags			users
