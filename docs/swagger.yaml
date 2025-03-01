@@ -1,0 +1,677 @@
+basePath: /api/v1
+definitions:
+  models.ConfigResponse:
+    description: Configuration response wrapper
+    properties:
+      data:
+        $ref: '#/definitions/models.Configuration'
+      error:
+        type: string
+    type: object
+  models.Configuration:
+    description: Complete application configuration settings
+    properties:
+      app:
+        description: App contains core application settings
+        properties:
+          apiBaseURL:
+            example: http://localhost:8080
+            type: string
+          appURL:
+            example: http://localhost:3000
+            type: string
+          environment:
+            enum:
+            - development
+            - staging
+            - production
+            example: development
+            type: string
+          logLevel:
+            enum:
+            - debug
+            - info
+            - warn
+            - error
+            example: info
+            type: string
+          maxPageSize:
+            example: 100
+            maximum: 1000
+            minimum: 1
+            type: integer
+          name:
+            example: Listarr
+            type: string
+        required:
+        - apiBaseURL
+        - appURL
+        - environment
+        - logLevel
+        - maxPageSize
+        - name
+        type: object
+      auth:
+        description: Auth contains authentication settings
+        properties:
+          allowedOrigins:
+            example:
+            - http://localhost:3000
+            items:
+              type: string
+            type: array
+          enable2FA:
+            example: false
+            type: boolean
+          enableLocal:
+            example: true
+            type: boolean
+          jwtSecret:
+            example: your-secret-key
+            type: string
+          sessionTimeout:
+            example: 60
+            minimum: 1
+            type: integer
+          tokenExpiration:
+            example: 24
+            minimum: 1
+            type: integer
+        required:
+        - jwtSecret
+        - sessionTimeout
+        - tokenExpiration
+        type: object
+      db:
+        description: Database contains database connection settings
+        properties:
+          host:
+            example: localhost
+            type: string
+          maxConns:
+            example: 20
+            minimum: 1
+            type: integer
+          name:
+            example: listarr
+            type: string
+          password:
+            example: yourpassword
+            type: string
+          port:
+            example: "5432"
+            type: string
+          timeout:
+            example: 30
+            minimum: 1
+            type: integer
+          user:
+            example: postgres_user
+            type: string
+        required:
+        - host
+        - maxConns
+        - name
+        - password
+        - port
+        - timeout
+        - user
+        type: object
+      http:
+        description: HTTP contains HTTP server configuration
+        properties:
+          enableSSL:
+            example: false
+            type: boolean
+          idleTimeout:
+            example: 60
+            minimum: 1
+            type: integer
+          port:
+            example: "8080"
+            type: string
+          proxyEnabled:
+            example: false
+            type: boolean
+          proxyURL:
+            example: http://proxy:8080
+            type: string
+          rateLimitEnabled:
+            example: true
+            type: boolean
+          readTimeout:
+            example: 30
+            minimum: 1
+            type: integer
+          requestsPerMin:
+            example: 100
+            minimum: 0
+            type: integer
+          sslCert:
+            example: /path/to/cert.pem
+            type: string
+          sslKey:
+            example: /path/to/key.pem
+            type: string
+          writeTimeout:
+            example: 30
+            minimum: 1
+            type: integer
+        required:
+        - idleTimeout
+        - port
+        - readTimeout
+        - writeTimeout
+        type: object
+      integrations:
+        description: Integrations contains all third-party service configurations
+        properties:
+          emby:
+            $ref: '#/definitions/models.EmbyConfig'
+          jellyfin:
+            $ref: '#/definitions/models.JellyfinConfig'
+          navidrome:
+            $ref: '#/definitions/models.NavidromeConfig'
+          plex:
+            $ref: '#/definitions/models.PlexConfig'
+          spotify:
+            $ref: '#/definitions/models.SpotifyConfig'
+          trakt:
+            $ref: '#/definitions/models.TraktConfig'
+        type: object
+      spotdl:
+        description: SpotDL contains Spotify download integration settings
+        properties:
+          concurrentDownloads:
+            example: 2
+            minimum: 1
+            type: integer
+          downloadDirectory:
+            example: ./downloads
+            type: string
+          enabled:
+            example: false
+            type: boolean
+          fileFormat:
+            enum:
+            - mp3
+            - flac
+            example: mp3
+            type: string
+          maxRetries:
+            example: 3
+            minimum: 0
+            type: integer
+          namingTemplate:
+            example: '{artist} - {title}'
+            type: string
+          notifyOnComplete:
+            example: true
+            type: boolean
+          qualityPreset:
+            enum:
+            - low
+            - medium
+            - high
+            example: high
+            type: string
+        required:
+        - concurrentDownloads
+        - downloadDirectory
+        - fileFormat
+        - maxRetries
+        - namingTemplate
+        - qualityPreset
+        type: object
+      sync:
+        description: Sync contains synchronization settings
+        properties:
+          collections:
+            properties:
+              allowedTypes:
+                example:
+                - series
+                - movies
+                - music
+                items:
+                  type: string
+                type: array
+              enableSync:
+                example: true
+                type: boolean
+              maxItems:
+                example: 5000
+                minimum: 1
+                type: integer
+              syncInterval:
+                example: 0 */12 * * *
+                type: string
+            required:
+            - maxItems
+            type: object
+          conflictStrategy:
+            enum:
+            - overwrite
+            - skip
+            - merge
+            example: skip
+            type: string
+          enabled:
+            example: true
+            type: boolean
+          interval:
+            example: 0 */12 * * *
+            type: string
+          playlists:
+            properties:
+              allowedTypes:
+                example:
+                - music
+                - media
+                items:
+                  type: string
+                type: array
+              enableSync:
+                example: true
+                type: boolean
+              maxItems:
+                example: 1000
+                minimum: 1
+                type: integer
+              syncInterval:
+                example: 0 */6 * * *
+                type: string
+            required:
+            - maxItems
+            type: object
+        required:
+        - conflictStrategy
+        - interval
+        type: object
+    type: object
+  models.EmbyConfig:
+    description: Emby media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 8096
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        example: error message
+        type: string
+    type: object
+  models.JellyfinConfig:
+    description: Jellyfin media server configuration
+    properties:
+      apiKey:
+        example: your-api-key
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 8096
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
+  models.NavidromeConfig:
+    description: Navidrome music server configuration
+    properties:
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      password:
+        example: your-password
+        type: string
+      port:
+        example: 4533
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      username:
+        example: admin
+        type: string
+    type: object
+  models.PlexConfig:
+    description: Plex media server configuration
+    properties:
+      enabled:
+        example: false
+        type: boolean
+      host:
+        example: localhost
+        type: string
+      port:
+        example: 32400
+        type: integer
+      ssl:
+        example: false
+        type: boolean
+      token:
+        example: your-plex-token
+        type: string
+    type: object
+  models.SpotifyConfig:
+    description: Spotify configuration
+    properties:
+      clientId:
+        example: your-client-id
+        type: string
+      clientSecret:
+        example: your-client-secret
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      redirectUri:
+        example: http://localhost:8080/callback
+        type: string
+      scopes:
+        example: user-library-read playlist-read-private
+        type: string
+    type: object
+  models.TraktConfig:
+    description: Trakt.tv configuration
+    properties:
+      clientId:
+        example: your-client-id
+        type: string
+      clientSecret:
+        example: your-client-secret
+        type: string
+      enabled:
+        example: false
+        type: boolean
+      redirectUri:
+        example: http://localhost:8080/callback
+        type: string
+    type: object
+  models.User:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: John Doe
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        description: omitempty will exclude it from JSON responses
+        example: strongpassword123
+        format: password
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  models.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API Server for Listarr application
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Listarr API
+  version: "1.0"
+paths:
+  /config:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current application configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+      summary: Get configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Update application configuration settings in app.config.json
+      parameters:
+      - description: Configuration settings
+        in: body
+        name: configuration
+        required: true
+        schema:
+          $ref: '#/definitions/models.Configuration'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+      summary: Update configuration
+      tags:
+      - config
+  /config/reset:
+    post:
+      consumes:
+      - application/json
+      description: Reset app.config.json to default values
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ConfigResponse'
+      summary: Reset configuration
+      tags:
+      - config
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user in the system
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get a user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get a user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update a user's information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a user
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"
