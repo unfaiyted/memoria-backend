@@ -18,6 +18,8 @@ run: swag
 test:
 	go test ./... -v
 
+pretty-test:
+	gotestsome ./...
 # Docker commands
 docker-build: swag
 	docker build -t $(DOCKER_IMAGE) .

@@ -8,10 +8,10 @@ import (
 
 type PasteRepository interface {
 	GetAll() ([]models.Paste, error)
-	GetByID(id uint) (*models.Paste, error)
-	Create(paste *models.Paste) error
-	Update(paste *models.Paste) error
-	Delete(id uint) error
+	GetByID(id uint64) (*models.Paste, error)
+	Create(paste *models.Paste) (*models.Paste, error)
+	Update(paste *models.Paste) (*models.Paste, error)
+	Delete(id uint64) (uint64, error)
 }
 
 type GormPasteRepository struct {
@@ -46,6 +46,5 @@ func (r *GormPasteRepository) Update(paste *models.Paste) (*models.Paste, error)
 func (r *GormPasteRepository) Delete(id uint) (uint, error) {
 	var paste models.Paste
 	result := r.db.Delete(&paste, id)
-	// TODO: Look into optimal way to return that something was deleted.
 	return id, result.Error
 }

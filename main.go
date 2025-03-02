@@ -6,7 +6,8 @@ import (
 	"log"
 	"memoria-backend/handlers"
 	"memoria-backend/models"
-	"memoria-backend/utils"
+	"memoria-backend/repository"
+	"memoria-backend/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -36,11 +37,14 @@ import (
 // @schemes	http
 // @openapi	3.0.0
 func main() {
-	if err := utils.InitConfig(); err != nil {
-		log.Fatalf("Failed to initilize conifg: %v", err)
+	configRepo := repository.NewConfigRepository()
+	configService := services.NewConfigService(configRepo)
+
+	if err := configService.InitConfig(); err != nil {
+		log.Fatalf("Failed to initialize config: %v", err)
 	}
 
-	appConfig := utils.GetConfig()
+	appConfig := configService.GetConfig()
 
 	// Initialize DB
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
@@ -79,6 +83,7 @@ func main() {
 			users.PUT("/:id", handlers.UpdateUser(db))
 			users.DELETE("/:id", handlers.DeleteUser(db))
 		}
+
 		v1.GET("/config", handlers.GetConfig)
 		v1.PUT("/config", handlers.UpdateConfig)
 		v1.POST("/config/reset", handlers.ResetConfig)

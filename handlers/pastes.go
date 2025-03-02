@@ -1,8 +1,19 @@
 package handlers
 
 import (
+	"memoria-backend/models"
+	"memoria-backend/services"
+
 	"github.com/gin-gonic/gin"
 )
+
+type PasteHandler struct {
+	pasteService *services.PasteService
+}
+
+func NewPasteHandler(pasteService *services.PasteService) *PasteHandler {
+	return &PasteHandler{pasteService: pasteService}
+}
 
 // CreatePaste godoc
 // @Summary create paste
@@ -14,7 +25,20 @@ import (
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /pastes [put]
-func CreatePaste(c *gin.Context) {}
+func (h *PasteHandler) CreatePaste(c *gin.Context) {
+	var req models.CreatePasteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	paste, err := h.pasteService.Create(req)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"paste": paste})
+}
 
 // GetPaste godoc
 // @Summary Gets a specific paste
@@ -26,7 +50,20 @@ func CreatePaste(c *gin.Context) {}
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /pastes [get]
-func GetPaste(c *gin.Context) {}
+func (h *PasteHandler) GetPaste(c *gin.Context) {
+	var req models.PasteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	paste, err := h.pasteService.GetByID(req.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"paste": paste})
+}
 
 // UpdatePaste godoc
 // @Summary Update paste
@@ -38,7 +75,20 @@ func GetPaste(c *gin.Context) {}
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /pastes [put]
-func UpdatePaste(c *gin.Context) {}
+func (h *PasteHandler) UpdatePaste(c *gin.Context) {
+	var req models.UpdatePasteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	paste, err := h.pasteService.Update(&req)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"paste": paste})
+}
 
 // DeletePaste godoc
 // @Summary Deletes paste by ID
@@ -50,7 +100,19 @@ func UpdatePaste(c *gin.Context) {}
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /pastes [delete]
-func DeletePaste(c *gin.Context) {}
+func (h *PasteHandler) DeletePaste(c *gin.Context) {
+	var req models.PasteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+	paste, err := h.pasteService.Delete(req.ID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"paste": paste})
+}
 
 // ListPastes godoc
 // @Summary deletes pastes by ID
@@ -62,5 +124,19 @@ func DeletePaste(c *gin.Context) {}
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /pastes [get]
-func ListPastes(c *gin.Context) {
+func (h *PasteHandler) ListPastes(c *gin.Context) {
+	var req models.PasteListRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	// TODO: Implement pagination, per page list request format
+	pastes, err := h.pasteService.GetAll()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, gin.H{"pastes": pastes})
 }
