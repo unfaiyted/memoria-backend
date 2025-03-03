@@ -1,418 +1,68 @@
 basePath: /api/v1
 definitions:
-  models.ConfigResponse:
-    description: Configuration response wrapper
-    properties:
-      data:
-        $ref: '#/definitions/models.Configuration'
-      error:
-        type: string
-    type: object
-  models.Configuration:
-    description: Complete application configuration settings
-    properties:
-      app:
-        description: App contains core application settings
-        properties:
-          apiBaseURL:
-            example: http://localhost:8080
-            type: string
-          appURL:
-            example: http://localhost:3000
-            type: string
-          environment:
-            enum:
-            - development
-            - staging
-            - production
-            example: development
-            type: string
-          logLevel:
-            enum:
-            - debug
-            - info
-            - warn
-            - error
-            example: info
-            type: string
-          maxPageSize:
-            example: 100
-            maximum: 1000
-            minimum: 1
-            type: integer
-          name:
-            example: Listarr
-            type: string
-        required:
-        - apiBaseURL
-        - appURL
-        - environment
-        - logLevel
-        - maxPageSize
-        - name
-        type: object
-      auth:
-        description: Auth contains authentication settings
-        properties:
-          allowedOrigins:
-            example:
-            - http://localhost:3000
-            items:
-              type: string
-            type: array
-          enable2FA:
-            example: false
-            type: boolean
-          enableLocal:
-            example: true
-            type: boolean
-          jwtSecret:
-            example: your-secret-key
-            type: string
-          sessionTimeout:
-            example: 60
-            minimum: 1
-            type: integer
-          tokenExpiration:
-            example: 24
-            minimum: 1
-            type: integer
-        required:
-        - jwtSecret
-        - sessionTimeout
-        - tokenExpiration
-        type: object
-      db:
-        description: Database contains database connection settings
-        properties:
-          host:
-            example: localhost
-            type: string
-          maxConns:
-            example: 20
-            minimum: 1
-            type: integer
-          name:
-            example: listarr
-            type: string
-          password:
-            example: yourpassword
-            type: string
-          port:
-            example: "5432"
-            type: string
-          timeout:
-            example: 30
-            minimum: 1
-            type: integer
-          user:
-            example: postgres_user
-            type: string
-        required:
-        - host
-        - maxConns
-        - name
-        - password
-        - port
-        - timeout
-        - user
-        type: object
-      http:
-        description: HTTP contains HTTP server configuration
-        properties:
-          enableSSL:
-            example: false
-            type: boolean
-          idleTimeout:
-            example: 60
-            minimum: 1
-            type: integer
-          port:
-            example: "8080"
-            type: string
-          proxyEnabled:
-            example: false
-            type: boolean
-          proxyURL:
-            example: http://proxy:8080
-            type: string
-          rateLimitEnabled:
-            example: true
-            type: boolean
-          readTimeout:
-            example: 30
-            minimum: 1
-            type: integer
-          requestsPerMin:
-            example: 100
-            minimum: 0
-            type: integer
-          sslCert:
-            example: /path/to/cert.pem
-            type: string
-          sslKey:
-            example: /path/to/key.pem
-            type: string
-          writeTimeout:
-            example: 30
-            minimum: 1
-            type: integer
-        required:
-        - idleTimeout
-        - port
-        - readTimeout
-        - writeTimeout
-        type: object
-      integrations:
-        description: Integrations contains all third-party service configurations
-        properties:
-          emby:
-            $ref: '#/definitions/models.EmbyConfig'
-          jellyfin:
-            $ref: '#/definitions/models.JellyfinConfig'
-          navidrome:
-            $ref: '#/definitions/models.NavidromeConfig'
-          plex:
-            $ref: '#/definitions/models.PlexConfig'
-          spotify:
-            $ref: '#/definitions/models.SpotifyConfig'
-          trakt:
-            $ref: '#/definitions/models.TraktConfig'
-        type: object
-      spotdl:
-        description: SpotDL contains Spotify download integration settings
-        properties:
-          concurrentDownloads:
-            example: 2
-            minimum: 1
-            type: integer
-          downloadDirectory:
-            example: ./downloads
-            type: string
-          enabled:
-            example: false
-            type: boolean
-          fileFormat:
-            enum:
-            - mp3
-            - flac
-            example: mp3
-            type: string
-          maxRetries:
-            example: 3
-            minimum: 0
-            type: integer
-          namingTemplate:
-            example: '{artist} - {title}'
-            type: string
-          notifyOnComplete:
-            example: true
-            type: boolean
-          qualityPreset:
-            enum:
-            - low
-            - medium
-            - high
-            example: high
-            type: string
-        required:
-        - concurrentDownloads
-        - downloadDirectory
-        - fileFormat
-        - maxRetries
-        - namingTemplate
-        - qualityPreset
-        type: object
-      sync:
-        description: Sync contains synchronization settings
-        properties:
-          collections:
-            properties:
-              allowedTypes:
-                example:
-                - series
-                - movies
-                - music
-                items:
-                  type: string
-                type: array
-              enableSync:
-                example: true
-                type: boolean
-              maxItems:
-                example: 5000
-                minimum: 1
-                type: integer
-              syncInterval:
-                example: 0 */12 * * *
-                type: string
-            required:
-            - maxItems
-            type: object
-          conflictStrategy:
-            enum:
-            - overwrite
-            - skip
-            - merge
-            example: skip
-            type: string
-          enabled:
-            example: true
-            type: boolean
-          interval:
-            example: 0 */12 * * *
-            type: string
-          playlists:
-            properties:
-              allowedTypes:
-                example:
-                - music
-                - media
-                items:
-                  type: string
-                type: array
-              enableSync:
-                example: true
-                type: boolean
-              maxItems:
-                example: 1000
-                minimum: 1
-                type: integer
-              syncInterval:
-                example: 0 */6 * * *
-                type: string
-            required:
-            - maxItems
-            type: object
-        required:
-        - conflictStrategy
-        - interval
-        type: object
-    type: object
-  models.EmbyConfig:
-    description: Emby media server configuration
-    properties:
-      apiKey:
-        example: your-api-key
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
-        type: string
-      port:
-        example: 8096
-        type: integer
-      ssl:
-        example: false
-        type: boolean
-      username:
-        example: admin
-        type: string
-    type: object
   models.ErrorResponse:
     properties:
       error:
         example: error message
         type: string
     type: object
-  models.JellyfinConfig:
-    description: Jellyfin media server configuration
+  models.Paste:
+    description: A text snippet with formatting, expiration, and privacy settings
     properties:
-      apiKey:
-        example: your-api-key
+      content:
+        example: console.log('Hello world');
         type: string
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
+      created_at:
+        example: "2023-01-01T00:00:00Z"
         type: string
-      port:
-        example: 8096
+      expires_at:
+        example: "2023-01-08T00:00:00Z"
+        type: string
+      id:
+        example: 123111
         type: integer
-      ssl:
-        example: false
-        type: boolean
-      username:
-        example: admin
+      privacy:
+        description: '"public", "private", "password"'
+        enum:
+        - public
+        - private
+        - password
+        example: public
         type: string
+      syntax_highlight:
+        example: javascript
+        type: string
+      title:
+        example: My Code Snippet
+        type: string
+      user_id:
+        example: u98765zyxwv
+        type: string
+    required:
+    - content
+    - id
+    - privacy
+    - syntax_highlight
+    - title
     type: object
-  models.NavidromeConfig:
-    description: Navidrome music server configuration
+  models.PasteListResponse:
+    description: List of pastes response wrapper
     properties:
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
-        type: string
-      password:
-        example: your-password
-        type: string
-      port:
-        example: 4533
+      count:
         type: integer
-      ssl:
-        example: false
-        type: boolean
-      username:
-        example: admin
+      data:
+        items:
+          $ref: '#/definitions/models.Paste'
+        type: array
+      error:
         type: string
     type: object
-  models.PlexConfig:
-    description: Plex media server configuration
+  models.PasteResponse:
+    description: Paste response wrapper
     properties:
-      enabled:
-        example: false
-        type: boolean
-      host:
-        example: localhost
-        type: string
-      port:
-        example: 32400
-        type: integer
-      ssl:
-        example: false
-        type: boolean
-      token:
-        example: your-plex-token
-        type: string
-    type: object
-  models.SpotifyConfig:
-    description: Spotify configuration
-    properties:
-      clientId:
-        example: your-client-id
-        type: string
-      clientSecret:
-        example: your-client-secret
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      redirectUri:
-        example: http://localhost:8080/callback
-        type: string
-      scopes:
-        example: user-library-read playlist-read-private
-        type: string
-    type: object
-  models.TraktConfig:
-    description: Trakt.tv configuration
-    properties:
-      clientId:
-        example: your-client-id
-        type: string
-      clientSecret:
-        example: your-client-secret
-        type: string
-      enabled:
-        example: false
-        type: boolean
-      redirectUri:
-        example: http://localhost:8080/callback
+      data:
+        $ref: '#/definitions/models.Paste'
+      error:
         type: string
     type: object
   models.User:
@@ -454,81 +104,81 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: API Server for Listarr application
+  description: API Server for Memoria application
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Listarr API
+  title: Memoria API
   version: "1.0"
 paths:
-  /config:
-    get:
+  /pastes:
+    delete:
       consumes:
       - application/json
-      description: Retrieve current application configuration
+      description: delete a paste by ID
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ConfigResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ConfigResponse'
-      summary: Get configuration
-      tags:
-      - config
-    put:
-      consumes:
-      - application/json
-      description: Update application configuration settings in app.config.json
-      parameters:
-      - description: Configuration settings
-        in: body
-        name: configuration
-        required: true
-        schema:
-          $ref: '#/definitions/models.Configuration'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ConfigResponse'
+            $ref: '#/definitions/models.PasteResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/models.ConfigResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.ConfigResponse'
-      summary: Update configuration
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Deletes paste by ID
       tags:
-      - config
-  /config/reset:
-    post:
+      - pastes
+    get:
       consumes:
       - application/json
-      description: Reset app.config.json to default values
+      description: Deletes a paste by ID
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ConfigResponse'
+            $ref: '#/definitions/models.PasteListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/models.ConfigResponse'
-      summary: Reset configuration
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: deletes pastes by ID
       tags:
-      - config
+      - pastes
+    put:
+      consumes:
+      - application/json
+      description: Update a pastes value
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PasteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update paste
+      tags:
+      - pastes
   /users:
     get:
       consumes:

@@ -5,7 +5,7 @@ import "time"
 // Paste represents a stored text snippet with metadata
 // @Description A text snippet with formatting, expiration, and privacy settings
 type Paste struct {
-	ID              uint64    `gorm:"primaryKey" json:"id" example:"p12345abcde" binding:"required"`
+	ID              uint64    `gorm:"primaryKey" json:"id" example:"123111" binding:"required"`
 	Title           string    `gorm:"not null" json:"title" example:"My Code Snippet" binding:"required"`
 	Content         string    `gorm:"type:text;not null" json:"content" example:"console.log('Hello world');" binding:"required"`
 	SyntaxHighlight string    `gorm:"default:'text'" json:"syntax_highlight" example:"javascript" binding:"required"`

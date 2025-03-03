@@ -2,8 +2,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"memoria-backend/database"
 	"memoria-backend/handlers"
 	"memoria-backend/models"
 	"memoria-backend/repository"
@@ -11,8 +11,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	_ "memoria-backend/docs"
 
@@ -47,13 +45,23 @@ func main() {
 	appConfig := configService.GetConfig()
 
 	// Initialize DB
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	// 	appConfig.Db.Host,
+	// 	appConfig.Db.User,
+	// 	appConfig.Db.Password,
+	// 	appConfig.Db.Name,
+	// 	appConfig.Db.Port)
+	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	dbConfig := database.Config{
 		appConfig.Db.Host,
 		appConfig.Db.User,
 		appConfig.Db.Password,
 		appConfig.Db.Name,
-		appConfig.Db.Port)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		appConfig.Db.Port,
+	}
+
+	db, err := database.Initialize(dbConfig)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
@@ -84,9 +92,11 @@ func main() {
 			users.DELETE("/:id", handlers.DeleteUser(db))
 		}
 
-		v1.GET("/config", handlers.GetConfig)
-		v1.PUT("/config", handlers.UpdateConfig)
-		v1.POST("/config/reset", handlers.ResetConfig)
+		configHandlers := handlers.NewConfigHandler(configService)
+
+		v1.GET("/config", configHandlers.GetConfig)
+		v1.PUT("/config", configHandlers.UpdateConfig)
+		v1.POST("/config/reset", configHandlers.ResetConfig)
 
 	}
 

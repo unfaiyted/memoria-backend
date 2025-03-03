@@ -1,10 +1,12 @@
+// handlers/config.go
 package handlers
 
 import (
-	"encoding/json"
 	"memoria-backend/models"
 	"memoria-backend/services"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 // ConfigHandler handles configuration API endpoints
@@ -20,23 +22,32 @@ func NewConfigHandler(configService services.ConfigService) *ConfigHandler {
 }
 
 // GetConfig returns the current configuration
-func (h *ConfigHandler) GetConfig(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(h.configService.GetConfig())
+func (h *ConfigHandler) GetConfig(c *gin.Context) {
+	c.JSON(http.StatusOK, h.configService.GetConfig())
 }
 
 // UpdateConfig handles configuration updates
-func (h *ConfigHandler) UpdateConfig(w http.ResponseWriter, r *http.Request) {
+func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 	var cfg models.Configuration
-	if err := json.NewDecoder(r.Body).Decode(&cfg); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&cfg); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
 	if err := h.configService.SaveConfig(cfg); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	c.Status(http.StatusOK)
+}
+
+// ResetConfig resets the configuration to default values
+func (h *ConfigHandler) ResetConfig(c *gin.Context) {
+	if err := h.configService.ResetFileConfig(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
