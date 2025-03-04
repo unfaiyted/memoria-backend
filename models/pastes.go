@@ -19,12 +19,13 @@ type Paste struct {
 type CreatePasteRequest struct {
 	Title           string    `json:"title" binding:"required"`
 	Content         string    `json:"content" binding:"required"`
-	SyntaxHighlight string    `json:"syntax_highlight" binding:"required"`
+	SyntaxHighlight string    `json:"syntax_highlight,omitempty" `
 	ExpiresAt       time.Time `json:"expires_at,omitempty" example:"2023-01-08T00:00:00Z"`
 	Privacy         string    `json:"privacy" binding:"required,oneof=public private password"`
 }
 
 type UpdatePasteRequest struct {
+	Title           string    `json:"title" binding:"required"`
 	ID              uint64    `json:"id" binding:"required"`
 	Content         string    `json:"content" binding:"required"`
 	SyntaxHighlight string    `json:"syntax_highlight" binding:"required"`

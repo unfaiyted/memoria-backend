@@ -50,9 +50,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/pastes": {
+        "/paste": {
             "get": {
-                "description": "Deletes a paste by ID",
+                "description": "Retrieve a paste by ID",
                 "consumes": [
                     "application/json"
                 ],
@@ -62,12 +62,12 @@ const docTemplate = `{
                 "tags": [
                     "pastes"
                 ],
-                "summary": "deletes pastes by ID",
+                "summary": "Gets a specific paste",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteListResponse"
+                            "$ref": "#/definitions/models.PasteResponse"
                         }
                     },
                     "400": {
@@ -117,6 +117,39 @@ const docTemplate = `{
                     }
                 }
             },
+            "post": {
+                "description": "creates a new paste",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "create paste",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PasteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "delete a paste by ID",
                 "consumes": [
@@ -134,6 +167,41 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.PasteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/paste/all": {
+            "get": {
+                "description": "Returns a list of all the pastes. # TODO: pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "Lists out all the pastes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PasteListResponse"
                         }
                     },
                     "400": {

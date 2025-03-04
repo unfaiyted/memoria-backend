@@ -17,7 +17,7 @@ func RegisterPasteRoutes(rg *gin.RouterGroup, db *gorm.DB) {
 	pastes := rg.Group("/paste")
 	{
 		pastes.POST("", pasteHandlers.CreatePaste)
-		pastes.GET("", pasteHandlers.ListPastes)
+		pastes.GET("/all", pasteHandlers.ListPastes)
 		pastes.GET("/:id", pasteHandlers.GetPaste)
 		pastes.PUT("/:id", pasteHandlers.UpdatePaste)
 		pastes.DELETE("/:id", pasteHandlers.DeletePaste)

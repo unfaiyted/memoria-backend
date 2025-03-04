@@ -3,6 +3,8 @@ package handlers
 import (
 	"memoria-backend/models"
 	"memoria-backend/services"
+	logger "memoria-backend/utils"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,20 +26,32 @@ func NewPasteHandler(pasteService services.PasteService) *PasteHandler {
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /pastes [put]
+// @Router /paste [post]
 func (h *PasteHandler) CreatePaste(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	var req models.CreatePasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to bind JSON for create paste request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	paste, err := h.pasteService.Create(&req)
+	log.Info().
+		Str("title", req.Title).
+		Str("content_preview", truncate(req.Content, 50)).
+		Msg("Creating new paste")
+
+	paste, err := h.pasteService.Create(ctx, &req)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to create paste")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"paste": paste})
+
+	log.Info().Uint64("paste_id", paste.ID).Msg("Successfully created paste")
+	c.JSON(http.StatusOK, gin.H{"paste": paste})
 }
 
 // GetPaste godoc
@@ -49,20 +63,29 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /pastes [get]
+// @Router /paste [get]
 func (h *PasteHandler) GetPaste(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	var req models.PasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to bind JSON for get paste request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	paste, err := h.pasteService.GetByID(req.ID)
+	log.Info().Uint64("paste_id", req.ID).Msg("Retrieving paste")
+
+	paste, err := h.pasteService.GetByID(ctx, req.ID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		log.Error().Err(err).Uint64("paste_id", req.ID).Msg("Failed to retrieve paste")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"paste": paste})
+
+	log.Info().Uint64("paste_id", req.ID).Msg("Successfully retrieved paste")
+	c.JSON(http.StatusOK, gin.H{"paste": paste})
 }
 
 // UpdatePaste godoc
@@ -74,20 +97,33 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /pastes [put]
+// @Router /paste [put]
 func (h *PasteHandler) UpdatePaste(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	var req models.UpdatePasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to bind JSON for update paste request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	paste, err := h.pasteService.Update(&req)
+	log.Info().
+		Uint64("paste_id", req.ID).
+		Str("title", req.Title).
+		Str("content_preview", truncate(req.Content, 50)).
+		Msg("Updating paste")
+
+	paste, err := h.pasteService.Update(ctx, &req)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		log.Error().Err(err).Uint64("paste_id", req.ID).Msg("Failed to update paste")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"paste": paste})
+
+	log.Info().Uint64("paste_id", req.ID).Msg("Successfully updated paste")
+	c.JSON(http.StatusOK, gin.H{"paste": paste})
 }
 
 // DeletePaste godoc
@@ -99,44 +135,70 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /pastes [delete]
+// @Router /paste [delete]
 func (h *PasteHandler) DeletePaste(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	var req models.PasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to bind JSON for delete paste request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	paste, err := h.pasteService.Delete(req.ID)
+
+	log.Info().Uint64("paste_id", req.ID).Msg("Deleting paste")
+
+	paste, err := h.pasteService.Delete(ctx, req.ID)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		log.Error().Err(err).Uint64("paste_id", req.ID).Msg("Failed to delete paste")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"paste": paste})
+
+	log.Info().Uint64("paste_id", req.ID).Msg("Successfully deleted paste")
+	c.JSON(http.StatusOK, gin.H{"paste": paste})
 }
 
 // ListPastes godoc
-// @Summary deletes pastes by ID
-// @Description Deletes a paste by ID
+// @Summary Lists out all the pastes
+// @Description Returns a list of all the pastes. # TODO: pagination
 // @Tags pastes
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.PasteListResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /pastes [get]
+// @Router /paste/all [get]
 func (h *PasteHandler) ListPastes(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := logger.FromContext(ctx)
+
 	var req models.PasteListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to bind JSON for list pastes request")
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	log.Info().Msg("Retrieving all pastes")
 
 	// TODO: Implement pagination, per page list request format
-	pastes, err := h.pasteService.GetAll()
+	pastes, err := h.pasteService.GetAll(ctx)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		log.Error().Err(err).Msg("Failed to retrieve all pastes")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"pastes": pastes})
+	log.Info().Int("count", len(pastes)).Msg("Successfully retrieved pastes")
+	c.JSON(http.StatusOK, gin.H{"pastes": pastes})
+}
+
+// Helper function to truncate long strings for logging
+func truncate(s string, maxLength int) string {
+	if len(s) <= maxLength {
+		return s
+	}
+	return s[:maxLength] + "..."
 }

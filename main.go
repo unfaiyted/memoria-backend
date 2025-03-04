@@ -2,16 +2,20 @@
 package main
 
 import (
-	"log"
+	"context"
 	"memoria-backend/database"
+	"memoria-backend/middleware"
 	"memoria-backend/repository"
 	"memoria-backend/router"
 	"memoria-backend/services"
+	logger "memoria-backend/utils"
 
 	_ "memoria-backend/docs"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/rs/zerolog/log"
 )
 
 //	@title			Memoria API
@@ -31,11 +35,15 @@ import (
 // @schemes	http
 // @openapi	3.0.0
 func main() {
+	logger.Initialize()
+
+	ctx := context.Background()
+
 	configRepo := repository.NewConfigRepository()
 	configService := services.NewConfigService(configRepo)
 
-	if err := configService.InitConfig(); err != nil {
-		log.Fatalf("Failed to initialize config: %v", err)
+	if err := configService.InitConfig(ctx); err != nil {
+		log.Fatal().Err(err).Msg("Failed to init config")
 	}
 
 	appConfig := configService.GetConfig()
@@ -50,10 +58,12 @@ func main() {
 
 	db, err := database.Initialize(dbConfig)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatal().Err(err).Msg("Failed to connect to database:")
 	}
 
 	r := router.Setup(db, configService)
+
+	r.Use(middleware.LoggerMiddleware())
 
 	// Swagger Docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

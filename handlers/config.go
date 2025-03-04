@@ -44,7 +44,7 @@ func (h *ConfigHandler) UpdateConfig(c *gin.Context) {
 
 // ResetConfig resets the configuration to default values
 func (h *ConfigHandler) ResetConfig(c *gin.Context) {
-	if err := h.configService.ResetFileConfig(); err != nil {
+	if err := h.configService.ResetFileConfig(c.Request.Context()); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -171,7 +171,7 @@ paths:
       summary: checks app and database health
       tags:
       - health
-  /pastes:
+  /paste:
     delete:
       consumes:
       - application/json
@@ -197,14 +197,14 @@ paths:
     get:
       consumes:
       - application/json
-      description: Deletes a paste by ID
+      description: Retrieve a paste by ID
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.PasteListResponse'
+            $ref: '#/definitions/models.PasteResponse'
         "400":
           description: Bad Request
           schema:
@@ -213,7 +213,29 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: deletes pastes by ID
+      summary: Gets a specific paste
+      tags:
+      - pastes
+    post:
+      consumes:
+      - application/json
+      description: creates a new paste
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PasteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: create paste
       tags:
       - pastes
     put:
@@ -236,6 +258,29 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Update paste
+      tags:
+      - pastes
+  /paste/all:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns a list of all the pastes. # TODO: pagination'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PasteListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Lists out all the pastes
       tags:
       - pastes
   /users:

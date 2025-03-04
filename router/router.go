@@ -28,6 +28,7 @@ func Setup(db *gorm.DB, configService services.ConfigService) *gin.Engine {
 	RegisterUserRoutes(v1, db)
 	RegisterConfigRoutes(v1, configService)
 	RegisterHealthRoutes(v1, healthService)
+	RegisterPasteRoutes(v1, db)
 
 	return r
 }

@@ -1,16 +1,17 @@
 package services
 
 import (
+	"context"
 	"memoria-backend/models"
 	"memoria-backend/repository"
 )
 
 type PasteService interface {
-	GetAll() ([]models.Paste, error)
-	GetByID(id uint64) (*models.Paste, error)
-	Create(newPaste *models.CreatePasteRequest) (*models.Paste, error)
-	Update(updatedPaste *models.UpdatePasteRequest) (*models.Paste, error)
-	Delete(id uint64) (uint64, error)
+	GetAll(ctx context.Context) ([]models.Paste, error)
+	GetByID(ctx context.Context, id uint64) (*models.Paste, error)
+	Create(ctx context.Context, newPaste *models.CreatePasteRequest) (*models.Paste, error)
+	Update(ctx context.Context, updatedPaste *models.UpdatePasteRequest) (*models.Paste, error)
+	Delete(ctx context.Context, id uint64) (uint64, error)
 }
 
 type pasteService struct {
@@ -24,8 +25,8 @@ func NewPasteService(pasteRepo repository.PasteRepository) PasteService {
 	}
 }
 
-func (s *pasteService) GetAll() ([]models.Paste, error) {
-	pastes, err := s.repo.GetAll()
+func (s *pasteService) GetAll(ctx context.Context) ([]models.Paste, error) {
+	pastes, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -33,8 +34,8 @@ func (s *pasteService) GetAll() ([]models.Paste, error) {
 	return pastes, nil
 }
 
-func (s *pasteService) GetByID(id uint64) (*models.Paste, error) {
-	paste, err := s.repo.GetByID(id)
+func (s *pasteService) GetByID(ctx context.Context, id uint64) (*models.Paste, error) {
+	paste, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +43,7 @@ func (s *pasteService) GetByID(id uint64) (*models.Paste, error) {
 	return paste, nil
 }
 
-func (s *pasteService) Create(newPaste *models.CreatePasteRequest) (*models.Paste, error) {
+func (s *pasteService) Create(ctx context.Context, newPaste *models.CreatePasteRequest) (*models.Paste, error) {
 	paste := &models.Paste{
 		Title:           newPaste.Title,
 		Content:         newPaste.Content,
@@ -51,7 +52,7 @@ func (s *pasteService) Create(newPaste *models.CreatePasteRequest) (*models.Past
 		Privacy:         newPaste.Privacy,
 	}
 
-	createdPaste, err := s.repo.Create(paste)
+	createdPaste, err := s.repo.Create(ctx, paste)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +60,7 @@ func (s *pasteService) Create(newPaste *models.CreatePasteRequest) (*models.Past
 	return createdPaste, nil
 }
 
-func (s *pasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.Paste, error) {
+func (s *pasteService) Update(ctx context.Context, updatedPaste *models.UpdatePasteRequest) (*models.Paste, error) {
 	paste := &models.Paste{
 		ID:              updatedPaste.ID,
 		Content:         updatedPaste.Content,
@@ -68,7 +69,7 @@ func (s *pasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.
 		Privacy:         updatedPaste.Privacy,
 	}
 
-	savedPaste, err := s.repo.Update(paste)
+	savedPaste, err := s.repo.Update(ctx, paste)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +77,8 @@ func (s *pasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.
 	return savedPaste, nil
 }
 
-func (s *pasteService) Delete(id uint64) (uint64, error) {
-	deletedID, err := s.repo.Delete(id)
+func (s *pasteService) Delete(ctx context.Context, id uint64) (uint64, error) {
+	deletedID, err := s.repo.Delete(ctx, id)
 	if err != nil {
 		return 0, err
 	}
