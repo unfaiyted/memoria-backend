@@ -5,11 +5,26 @@ import (
 	"memoria-backend/repository"
 )
 
-type PasteService struct {
+type PasteService interface {
+	GetAll() ([]models.Paste, error)
+	GetByID(id uint64) (*models.Paste, error)
+	Create(newPaste *models.CreatePasteRequest) (*models.Paste, error)
+	Update(updatedPaste *models.UpdatePasteRequest) (*models.Paste, error)
+	Delete(id uint64) (uint64, error)
+}
+
+type pasteService struct {
 	repo repository.PasteRepository
 }
 
-func (s *PasteService) GetAll() ([]models.Paste, error) {
+// NewConfigService creates a new configuration service
+func NewPasteService(pasteRepo repository.PasteRepository) PasteService {
+	return &pasteService{
+		repo: pasteRepo,
+	}
+}
+
+func (s *pasteService) GetAll() ([]models.Paste, error) {
 	pastes, err := s.repo.GetAll()
 	if err != nil {
 		return nil, err
@@ -18,7 +33,7 @@ func (s *PasteService) GetAll() ([]models.Paste, error) {
 	return pastes, nil
 }
 
-func (s *PasteService) GetByID(id uint64) (*models.Paste, error) {
+func (s *pasteService) GetByID(id uint64) (*models.Paste, error) {
 	paste, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -27,7 +42,7 @@ func (s *PasteService) GetByID(id uint64) (*models.Paste, error) {
 	return paste, nil
 }
 
-func (s *PasteService) Create(newPaste models.CreatePasteRequest) (*models.Paste, error) {
+func (s *pasteService) Create(newPaste *models.CreatePasteRequest) (*models.Paste, error) {
 	paste := &models.Paste{
 		Title:           newPaste.Title,
 		Content:         newPaste.Content,
@@ -44,7 +59,7 @@ func (s *PasteService) Create(newPaste models.CreatePasteRequest) (*models.Paste
 	return createdPaste, nil
 }
 
-func (s *PasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.Paste, error) {
+func (s *pasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.Paste, error) {
 	paste := &models.Paste{
 		ID:              updatedPaste.ID,
 		Content:         updatedPaste.Content,
@@ -61,7 +76,7 @@ func (s *PasteService) Update(updatedPaste *models.UpdatePasteRequest) (*models.
 	return savedPaste, nil
 }
 
-func (s *PasteService) Delete(id uint64) (uint64, error) {
+func (s *pasteService) Delete(id uint64) (uint64, error) {
 	deletedID, err := s.repo.Delete(id)
 	if err != nil {
 		return 0, err

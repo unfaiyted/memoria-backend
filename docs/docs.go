@@ -24,6 +24,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/health": {
+            "get": {
+                "description": "returns JSON object with health statuses.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "checks app and database health",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.HealthResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/pastes": {
             "get": {
                 "description": "Deletes a paste by ID",
@@ -346,9 +372,66 @@ const docTemplate = `{
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
+                "details": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
                 "error": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ErrorType"
+                        }
+                    ],
+                    "example": "FAILED_CHECK"
+                },
+                "message": {
                     "type": "string",
-                    "example": "error message"
+                    "example": "This is a pretty message"
+                }
+            }
+        },
+        "models.ErrorType": {
+            "type": "string",
+            "enum": [
+                "FAILED_CHECK",
+                "UNAUTHORIZED",
+                "NOT_FOUND",
+                "BAD_REQUEST",
+                "INTERNAL_ERROR"
+            ],
+            "x-enum-varnames": [
+                "ErrorTypeFailedCheck",
+                "ErrorTypeUnauthorized",
+                "ErrorTypeNotFound",
+                "ErrorTypeBadRequest",
+                "ErrorTypeInternalError"
+            ]
+        },
+        "models.HealthResponse": {
+            "type": "object",
+            "required": [
+                "application",
+                "database",
+                "status"
+            ],
+            "properties": {
+                "application": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "database": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "status": {
+                    "description": "Overall status of the system",
+                    "type": "string",
+                    "enum": [
+                        "up",
+                        "down",
+                        "degraded"
+                    ],
+                    "example": "up"
                 }
             }
         },

@@ -2,9 +2,51 @@ basePath: /api/v1
 definitions:
   models.ErrorResponse:
     properties:
+      details:
+        additionalProperties: true
+        type: object
       error:
-        example: error message
+        allOf:
+        - $ref: '#/definitions/models.ErrorType'
+        example: FAILED_CHECK
+      message:
+        example: This is a pretty message
         type: string
+    type: object
+  models.ErrorType:
+    enum:
+    - FAILED_CHECK
+    - UNAUTHORIZED
+    - NOT_FOUND
+    - BAD_REQUEST
+    - INTERNAL_ERROR
+    type: string
+    x-enum-varnames:
+    - ErrorTypeFailedCheck
+    - ErrorTypeUnauthorized
+    - ErrorTypeNotFound
+    - ErrorTypeBadRequest
+    - ErrorTypeInternalError
+  models.HealthResponse:
+    properties:
+      application:
+        example: true
+        type: boolean
+      database:
+        example: true
+        type: boolean
+      status:
+        description: Overall status of the system
+        enum:
+        - up
+        - down
+        - degraded
+        example: up
+        type: string
+    required:
+    - application
+    - database
+    - status
     type: object
   models.Paste:
     description: A text snippet with formatting, expiration, and privacy settings
@@ -112,6 +154,23 @@ info:
   title: Memoria API
   version: "1.0"
 paths:
+  /health:
+    get:
+      description: returns JSON object with health statuses.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HealthResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: checks app and database health
+      tags:
+      - health
   /pastes:
     delete:
       consumes:

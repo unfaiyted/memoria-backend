@@ -8,10 +8,10 @@ import (
 )
 
 type PasteHandler struct {
-	pasteService *services.PasteService
+	pasteService services.PasteService
 }
 
-func NewPasteHandler(pasteService *services.PasteService) *PasteHandler {
+func NewPasteHandler(pasteService services.PasteService) *PasteHandler {
 	return &PasteHandler{pasteService: pasteService}
 }
 
@@ -32,7 +32,7 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 		return
 	}
 
-	paste, err := h.pasteService.Create(req)
+	paste, err := h.pasteService.Create(&req)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
