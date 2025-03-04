@@ -4,7 +4,6 @@ package main
 import (
 	"log"
 	"memoria-backend/database"
-	"memoria-backend/models"
 	"memoria-backend/repository"
 	"memoria-backend/router"
 	"memoria-backend/services"
@@ -53,9 +52,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	// Auto Migrate the schema
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Paste{})
 
 	r := router.Setup(db, configService)
 

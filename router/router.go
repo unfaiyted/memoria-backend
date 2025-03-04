@@ -22,9 +22,12 @@ func Setup(db *gorm.DB, configService services.ConfigService) *gin.Engine {
 	// Setup API v1 routes
 	v1 := r.Group("/api/v1")
 
+	healthService := services.NewHealthService(db)
+
 	// Register all routes
 	RegisterUserRoutes(v1, db)
 	RegisterConfigRoutes(v1, configService)
+	RegisterHealthRoutes(v1, healthService)
 
 	return r
 }

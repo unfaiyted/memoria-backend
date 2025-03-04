@@ -25,13 +25,21 @@ func CreateUser(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var user models.User
 		if err := c.ShouldBindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{
+				Error:   models.ErrorTypeBadRequest,
+				Message: "Create uses request failed as bad request",
+				Details: map[string]interface{}{"error": err.Error()},
+			})
 			return
 		}
 
 		result := db.Create(&user)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: result.Error.Error()})
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Error:   models.ErrorTypeInternalError,
+				Message: "Could not create user. Internal Server Error",
+				Details: map[string]interface{}{"error": result.Error.Error()},
+			})
 			return
 		}
 
@@ -54,7 +62,11 @@ func GetUsers(db *gorm.DB) gin.HandlerFunc {
 		var users []models.User
 		result := db.Find(&users)
 		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: result.Error.Error()})
+			c.JSON(http.StatusInternalServerError, models.ErrorResponse{
+				Error:   models.ErrorTypeInternalError,
+				Message: "Error getting users",
+				Details: map[string]interface{}{"error": result.Error.Error()},
+			})
 			return
 		}
 
@@ -113,7 +125,11 @@ func UpdateUser(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		if err := c.ShouldBindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{
+				Error:   models.ErrorTypeBadRequest,
+				Message: "Error updating user, Bad request",
+				Details: map[string]interface{}{"error": err.Error()},
+			})
 			return
 		}
 
