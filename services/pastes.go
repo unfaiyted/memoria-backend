@@ -4,6 +4,7 @@ import (
 	"context"
 	"memoria-backend/models"
 	"memoria-backend/repository"
+	"memoria-backend/utils"
 )
 
 type PasteService interface {
@@ -44,6 +45,7 @@ func (s *pasteService) GetByID(ctx context.Context, id uint64) (*models.Paste, e
 }
 
 func (s *pasteService) Create(ctx context.Context, newPaste *models.CreatePasteRequest) (*models.Paste, error) {
+	log := utils.LoggerFromContext(ctx)
 	paste := &models.Paste{
 		Title:           newPaste.Title,
 		Content:         newPaste.Content,
@@ -53,6 +55,12 @@ func (s *pasteService) Create(ctx context.Context, newPaste *models.CreatePasteR
 	}
 
 	createdPaste, err := s.repo.Create(ctx, paste)
+
+	log.Info().
+		Str("title", createdPaste.Title).
+		Str("content_preview", utils.Truncate(createdPaste.Content, 50)).
+		Msg("Repo returned new paste")
+
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +71,7 @@ func (s *pasteService) Create(ctx context.Context, newPaste *models.CreatePasteR
 func (s *pasteService) Update(ctx context.Context, updatedPaste *models.UpdatePasteRequest) (*models.Paste, error) {
 	paste := &models.Paste{
 		ID:              updatedPaste.ID,
+		Title:           updatedPaste.Title,
 		Content:         updatedPaste.Content,
 		SyntaxHighlight: updatedPaste.SyntaxHighlight,
 		ExpiresAt:       updatedPaste.ExpiresAt,

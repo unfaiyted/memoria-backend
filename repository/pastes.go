@@ -39,15 +39,13 @@ func (r *pasteRepository) GetByID(ctx context.Context, id uint64) (*models.Paste
 }
 
 func (r *pasteRepository) Create(ctx context.Context, paste *models.Paste) (*models.Paste, error) {
-	var createdPaste models.Paste
 	result := r.db.Create(&paste)
-	return &createdPaste, result.Error
+	return paste, result.Error
 }
 
 func (r *pasteRepository) Update(ctx context.Context, paste *models.Paste) (*models.Paste, error) {
-	var updatedPaste models.Paste
 	result := r.db.Save(&paste)
-	return &updatedPaste, result.Error
+	return paste, result.Error
 }
 
 func (r *pasteRepository) Delete(ctx context.Context, id uint64) (uint64, error) {

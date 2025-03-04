@@ -19,7 +19,7 @@ func Initialize() {
 }
 
 // FromContext extracts logger from context
-func FromContext(ctx context.Context) zerolog.Logger {
+func LoggerFromContext(ctx context.Context) zerolog.Logger {
 	if ctx == nil {
 		return log.Logger
 	}
@@ -36,6 +36,6 @@ func WithContext(ctx context.Context, logger zerolog.Logger) context.Context {
 
 // WithRequestID adds request ID to logger and context
 func WithRequestID(ctx context.Context, requestID string) (context.Context, zerolog.Logger) {
-	logger := FromContext(ctx).With().Str("request_id", requestID).Logger()
+	logger := LoggerFromContext(ctx).With().Str("request_id", requestID).Logger()
 	return WithContext(ctx, logger), logger
 }

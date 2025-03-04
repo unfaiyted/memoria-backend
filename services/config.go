@@ -7,7 +7,7 @@ import (
 	"memoria-backend/constants"
 	"memoria-backend/models"
 	"memoria-backend/repository"
-	logger "memoria-backend/utils"
+	"memoria-backend/utils"
 	"os"
 	"strings"
 	"sync"
@@ -48,7 +48,7 @@ func NewConfigService(configRepo repository.ConfigRepository) ConfigService {
 
 // InitConfig initializes the configuration
 func (s *configService) InitConfig(ctx context.Context) error {
-	logger := logger.FromContext(ctx)
+	logger := utils.LoggerFromContext(ctx)
 	logger.Info().Msg("Initilizing Config")
 	s.k = koanf.New(".")
 
