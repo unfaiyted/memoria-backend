@@ -4,13 +4,10 @@ package main
 import (
 	"log"
 	"memoria-backend/database"
-	"memoria-backend/handlers"
 	"memoria-backend/models"
 	"memoria-backend/repository"
+	"memoria-backend/router"
 	"memoria-backend/services"
-
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 
 	_ "memoria-backend/docs"
 
@@ -44,21 +41,12 @@ func main() {
 
 	appConfig := configService.GetConfig()
 
-	// Initialize DB
-	// dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-	// 	appConfig.Db.Host,
-	// 	appConfig.Db.User,
-	// 	appConfig.Db.Password,
-	// 	appConfig.Db.Name,
-	// 	appConfig.Db.Port)
-	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	dbConfig := database.Config{
-		appConfig.Db.Host,
-		appConfig.Db.User,
-		appConfig.Db.Password,
-		appConfig.Db.Name,
-		appConfig.Db.Port,
+		Host:     appConfig.Db.Host,
+		User:     appConfig.Db.User,
+		Password: appConfig.Db.Password,
+		Name:     appConfig.Db.Name,
+		Port:     appConfig.Db.Port,
 	}
 
 	db, err := database.Initialize(dbConfig)
@@ -69,36 +57,7 @@ func main() {
 	db.AutoMigrate(&models.User{})
 	db.AutoMigrate(&models.Paste{})
 
-	// Initialize Gin
-	r := gin.Default()
-
-	// CORS Configuration
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://192.168.0.126:3000"} // Your frontend URL
-	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
-	config.AllowHeaders = []string{"Origin", "Authorization", "Content-Type"}
-	r.Use(cors.New(config))
-
-	// API v1 routes
-	v1 := r.Group("/api/v1")
-	{
-		// Users routes
-		users := v1.Group("/users")
-		{
-			users.POST("", handlers.CreateUser(db))
-			users.GET("", handlers.GetUsers(db))
-			users.GET("/:id", handlers.GetUser(db))
-			users.PUT("/:id", handlers.UpdateUser(db))
-			users.DELETE("/:id", handlers.DeleteUser(db))
-		}
-
-		configHandlers := handlers.NewConfigHandler(configService)
-
-		v1.GET("/config", configHandlers.GetConfig)
-		v1.PUT("/config", configHandlers.UpdateConfig)
-		v1.POST("/config/reset", configHandlers.ResetConfig)
-
-	}
+	r := router.Setup(db, configService)
 
 	// Swagger Docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
