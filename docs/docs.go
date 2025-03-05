@@ -51,39 +51,6 @@ const docTemplate = `{
             }
         },
         "/paste": {
-            "get": {
-                "description": "Retrieve a paste by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "pastes"
-                ],
-                "summary": "Gets a specific paste",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.PasteResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            },
             "put": {
                 "description": "Update a pastes value",
                 "consumes": [
@@ -96,6 +63,17 @@ const docTemplate = `{
                     "pastes"
                 ],
                 "summary": "Update paste",
+                "parameters": [
+                    {
+                        "description": "Updated paste data",
+                        "name": "paste",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePasteRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -118,7 +96,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "creates a new paste",
+                "description": "Creates a new paste",
                 "consumes": [
                     "application/json"
                 ],
@@ -128,7 +106,18 @@ const docTemplate = `{
                 "tags": [
                     "pastes"
                 ],
-                "summary": "create paste",
+                "summary": "Create paste",
+                "parameters": [
+                    {
+                        "description": "Paste data",
+                        "name": "paste",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePasteRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -162,6 +151,15 @@ const docTemplate = `{
                     "pastes"
                 ],
                 "summary": "Deletes paste by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Paste ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -171,6 +169,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -197,11 +201,68 @@ const docTemplate = `{
                     "pastes"
                 ],
                 "summary": "Lists out all the pastes",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.PasteListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/paste/{id}": {
+            "get": {
+                "description": "Retrieve a paste by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "Gets a specific paste",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Paste ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PasteResponse"
                         }
                     },
                     "400": {
@@ -437,6 +498,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CreatePasteRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "privacy",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2023-01-08T00:00:00Z"
+                },
+                "privacy": {
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "private",
+                        "password"
+                    ]
+                },
+                "syntax_highlight": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -580,6 +672,41 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.Paste"
                 },
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdatePasteRequest": {
+            "type": "object",
+            "required": [
+                "content",
+                "id",
+                "privacy",
+                "title"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2023-01-08T00:00:00Z"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "privacy": {
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "private",
+                        "password"
+                    ]
+                },
+                "syntax_highlight": {
+                    "type": "string"
+                },
+                "title": {
                     "type": "string"
                 }
             }

@@ -1,5 +1,27 @@
 basePath: /api/v1
 definitions:
+  models.CreatePasteRequest:
+    properties:
+      content:
+        type: string
+      expires_at:
+        example: "2023-01-08T00:00:00Z"
+        type: string
+      privacy:
+        enum:
+        - public
+        - private
+        - password
+        type: string
+      syntax_highlight:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - privacy
+    - title
+    type: object
   models.ErrorResponse:
     properties:
       details:
@@ -107,6 +129,31 @@ definitions:
       error:
         type: string
     type: object
+  models.UpdatePasteRequest:
+    properties:
+      content:
+        type: string
+      expires_at:
+        example: "2023-01-08T00:00:00Z"
+        type: string
+      id:
+        type: integer
+      privacy:
+        enum:
+        - public
+        - private
+        - password
+        type: string
+      syntax_highlight:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - id
+    - privacy
+    - title
+    type: object
   models.User:
     properties:
       email:
@@ -176,6 +223,12 @@ paths:
       consumes:
       - application/json
       description: delete a paste by ID
+      parameters:
+      - description: Paste ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -185,6 +238,10 @@ paths:
             $ref: '#/definitions/models.PasteResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "500":
@@ -194,32 +251,17 @@ paths:
       summary: Deletes paste by ID
       tags:
       - pastes
-    get:
-      consumes:
-      - application/json
-      description: Retrieve a paste by ID
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.PasteResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      summary: Gets a specific paste
-      tags:
-      - pastes
     post:
       consumes:
       - application/json
-      description: creates a new paste
+      description: Creates a new paste
+      parameters:
+      - description: Paste data
+        in: body
+        name: paste
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePasteRequest'
       produces:
       - application/json
       responses:
@@ -235,13 +277,20 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-      summary: create paste
+      summary: Create paste
       tags:
       - pastes
     put:
       consumes:
       - application/json
       description: Update a pastes value
+      parameters:
+      - description: Updated paste data
+        in: body
+        name: paste
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePasteRequest'
       produces:
       - application/json
       responses:
@@ -260,11 +309,49 @@ paths:
       summary: Update paste
       tags:
       - pastes
+  /paste/{id}:
+    get:
+      description: Retrieve a paste by ID
+      parameters:
+      - description: Paste ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PasteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Gets a specific paste
+      tags:
+      - pastes
   /paste/all:
     get:
       consumes:
       - application/json
       description: 'Returns a list of all the pastes. # TODO: pagination'
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:

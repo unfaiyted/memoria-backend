@@ -19,11 +19,12 @@ func NewPasteHandler(pasteService services.PasteService) *PasteHandler {
 }
 
 // CreatePaste godoc
-// @Summary create paste
-// @Description creates a new paste
+// @Summary Create paste
+// @Description Creates a new paste
 // @Tags pastes
 // @Accept json
 // @Produce json
+// @Param paste body models.CreatePasteRequest true "Paste data"
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
@@ -35,7 +36,7 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 	var req models.CreatePasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Failed to bind JSON for create paste request")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondBadRequest(c, err, "Invalid paste data format")
 		return
 	}
 
@@ -47,7 +48,7 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 	paste, err := h.pasteService.Create(ctx, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondInternalError(c, err, "Invalid paste data format")
 		return
 	}
 
@@ -59,12 +60,12 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 // @Summary Gets a specific paste
 // @Description Retrieve a paste by ID
 // @Tags pastes
-// @Param id query uint64 true "Paste ID"
+// @Param id path uint64 true "Paste ID"
 // @Produce json
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
-// @Router /paste [get]
+// @Router /paste/{id} [get]
 func (h *PasteHandler) GetPaste(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
@@ -97,6 +98,7 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 // @Tags pastes
 // @Accept json
 // @Produce json
+// @Param paste body models.UpdatePasteRequest true "Updated paste data"
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
@@ -134,9 +136,11 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 // @Description delete a paste by ID
 // @Tags pastes
 // @Accept json
+// @Param id path uint64 true "Paste ID"
 // @Produce json
 // @Success 200 {object} models.PasteResponse
 // @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste [delete]
 func (h *PasteHandler) DeletePaste(c *gin.Context) {
@@ -171,6 +175,8 @@ func (h *PasteHandler) DeletePaste(c *gin.Context) {
 // @Tags pastes
 // @Accept json
 // @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
 // @Success 200 {object} models.PasteListResponse
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse

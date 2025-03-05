@@ -1,21 +1,32 @@
 // models/responses.go
 package models
 
+import "time"
+
 type ErrorType string
 
 const (
-	ErrorTypeFailedCheck   ErrorType = "FAILED_CHECK"
-	ErrorTypeUnauthorized  ErrorType = "UNAUTHORIZED"
-	ErrorTypeNotFound      ErrorType = "NOT_FOUND"
-	ErrorTypeBadRequest    ErrorType = "BAD_REQUEST"
-	ErrorTypeInternalError ErrorType = "INTERNAL_ERROR"
+	ErrorTypeFailedCheck         ErrorType = "FAILED_CHECK"
+	ErrorTypeUnauthorized        ErrorType = "UNAUTHORIZED"
+	ErrorTypeNotFound            ErrorType = "NOT_FOUND"
+	ErrorTypeBadRequest          ErrorType = "BAD_REQUEST"
+	ErrorTypeInternalError       ErrorType = "INTERNAL_ERROR"
+	ErrorTypeForbidden           ErrorType = "FORBIDDEN"
+	ErrorTypeConflict            ErrorType = "CONFLICT"
+	ErrorTypeValidation          ErrorType = "VALIDATION_ERROR"
+	ErrorTypeRateLimited         ErrorType = "RATE_LIMITED"
+	ErrorTypeTimeout             ErrorType = "TIMEOUT"
+	ErrorTypeServiceUnavailable  ErrorType = "SERVICE_UNAVAILABLE"
+	ErrorTypeUnprocessableEntity ErrorType = "UNPROCESSABLE_ENTITY"
 )
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Error   ErrorType              `json:"error" example:"FAILED_CHECK"`
-	Message string                 `json:"message" example:"This is a pretty message"`
-	Details map[string]interface{} `json:"details,omitempty"`
+	Error     ErrorType              `json:"error" example:"FAILED_CHECK"`
+	Message   string                 `json:"message" example:"This is a pretty message"`
+	Details   map[string]interface{} `json:"details,omitempty"`
+	Timestamp time.Time              `json:"timestamp"`
+	RequestID string                 `json:"request_id,omitempty"`
 }
 
 // APIResponse represents a generic API response
