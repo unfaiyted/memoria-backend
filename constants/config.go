@@ -15,7 +15,7 @@ var DefaultConfig = map[string]interface{}{
 	"db.host":     "localhost",
 	"db.port":     "5432",
 	"db.name":     "memoria",
-	"db.user":     "postgres_user",
+	"db.user":     "postgres",
 	"db.password": "yourpassword",
 	"db.maxConns": 20,
 	"db.timeout":  30,

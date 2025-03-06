@@ -47,7 +47,7 @@ type Configuration struct {
 		Enable2FA       bool     `json:"enable2FA" mapstructure:"enable2FA" example:"false"`
 		JWTSecret       string   `json:"jwtSecret" mapstructure:"jwtSecret" example:"your-secret-key" binding:"required"`
 		TokenExpiration int      `json:"tokenExpiration" mapstructure:"tokenExpiration" example:"24" binding:"required,min=1"`
-		AllowedOrigins  []string `json:"allowedOrigins" mapstructure:"allowedOrigins" example:"http://localhost:3000"`
+		AllowedOrigins  []string `json:"allowedOrigins" koanf:"allowedOrigins,allowedorigins" mapstructure:"allowedOrigins" example:"http://localhost:3000"`
 	} `json:"auth"`
 }
 

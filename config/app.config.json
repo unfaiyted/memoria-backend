@@ -8,16 +8,17 @@
     "name": "Memoria"
   },
   "auth": {
-    "allowedOrigins": ["http://localhost:3000"],
+    "allowedorigins": ["http://localhost:3000"],
     "enable2FA": false,
     "enableLocal": true,
+    "jwtSecret": "",
     "sessionTimeout": 60,
     "tokenExpiration": 24
   },
   "db": {
     "host": "localhost",
     "maxConns": 20,
-    "name": "yourdb",
+    "name": "memoria",
     "password": "yourpassword",
     "port": "5432",
     "timeout": 30,
@@ -27,9 +28,14 @@
     "enableSSL": false,
     "idleTimeout": 60,
     "port": "8080",
+    "proxyEnabled": false,
+    "proxyURL": "",
     "rateLimitEnabled": true,
     "readTimeout": 30,
     "requestsPerMin": 100,
+    "sslCert": "",
+    "sslKey": "",
     "writeTimeout": 30
   }
 }
+

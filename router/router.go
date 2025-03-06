@@ -2,19 +2,28 @@
 package router
 
 import (
+	"context"
 	"memoria-backend/services"
+	"memoria-backend/utils"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func Setup(db *gorm.DB, configService services.ConfigService) *gin.Engine {
+func Setup(ctx context.Context, db *gorm.DB, configService services.ConfigService) *gin.Engine {
 	r := gin.Default()
+	log := utils.LoggerFromContext(ctx)
 
+	appConfig := configService.GetConfig()
 	// CORS config
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:6661", "http://localhost:5173", "http://memoria-frontend:3000"}
+	config.AllowOrigins = appConfig.Auth.AllowedOrigins
+
+	log.Info().
+		Strs("AllowedOrigins", config.AllowOrigins).
+		Msg("Allowed Origins set.")
+
 	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Authorization", "Content-Type"}
 	r.Use(cors.New(config))
