@@ -1,5 +1,37 @@
-basePath: /api/v1
 definitions:
+  models.APIResponse-models_PasteData:
+    properties:
+      data:
+        $ref: '#/definitions/models.PasteData'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-models_PasteListData:
+    properties:
+      data:
+        $ref: '#/definitions/models.PasteListData'
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.APIResponse-uint64:
+    properties:
+      data:
+        type: integer
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   models.CreatePasteRequest:
     properties:
       content:
@@ -34,6 +66,10 @@ definitions:
       message:
         example: This is a pretty message
         type: string
+      request_id:
+        type: string
+      timestamp:
+        type: string
     type: object
   models.ErrorType:
     enum:
@@ -42,6 +78,13 @@ definitions:
     - NOT_FOUND
     - BAD_REQUEST
     - INTERNAL_ERROR
+    - FORBIDDEN
+    - CONFLICT
+    - VALIDATION_ERROR
+    - RATE_LIMITED
+    - TIMEOUT
+    - SERVICE_UNAVAILABLE
+    - UNPROCESSABLE_ENTITY
     type: string
     x-enum-varnames:
     - ErrorTypeFailedCheck
@@ -49,6 +92,13 @@ definitions:
     - ErrorTypeNotFound
     - ErrorTypeBadRequest
     - ErrorTypeInternalError
+    - ErrorTypeForbidden
+    - ErrorTypeConflict
+    - ErrorTypeValidation
+    - ErrorTypeRateLimited
+    - ErrorTypeTimeout
+    - ErrorTypeServiceUnavailable
+    - ErrorTypeUnprocessableEntity
   models.HealthResponse:
     properties:
       application:
@@ -109,25 +159,20 @@ definitions:
     - syntax_highlight
     - title
     type: object
-  models.PasteListResponse:
+  models.PasteData:
+    properties:
+      paste:
+        $ref: '#/definitions/models.Paste'
+    type: object
+  models.PasteListData:
     description: List of pastes response wrapper
     properties:
       count:
         type: integer
-      data:
+      pastes:
         items:
           $ref: '#/definitions/models.Paste'
         type: array
-      error:
-        type: string
-    type: object
-  models.PasteResponse:
-    description: Paste response wrapper
-    properties:
-      data:
-        $ref: '#/definitions/models.Paste'
-      error:
-        type: string
     type: object
   models.UpdatePasteRequest:
     properties:
@@ -187,19 +232,8 @@ definitions:
       name:
         type: string
     type: object
-host: localhost:8080
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: API Server for Memoria application
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: Memoria API
-  version: "1.0"
+  contact: {}
 paths:
   /health:
     get:
@@ -235,11 +269,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.PasteResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
+            $ref: '#/definitions/models.APIResponse-uint64'
         "404":
           description: Not Found
           schema:
@@ -266,9 +296,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success response with paste data
           schema:
-            $ref: '#/definitions/models.PasteResponse'
+            $ref: '#/definitions/models.APIResponse-models_PasteData'
         "400":
           description: Bad Request
           schema:
@@ -295,11 +325,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success response with paste data
           schema:
-            $ref: '#/definitions/models.PasteResponse'
+            $ref: '#/definitions/models.APIResponse-models_PasteData'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Paste not found
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "500":
@@ -322,11 +356,15 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success response with paste data
           schema:
-            $ref: '#/definitions/models.PasteResponse'
+            $ref: '#/definitions/models.APIResponse-models_PasteData'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Paste not found
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "500":
@@ -356,9 +394,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success response with paste list data
           schema:
-            $ref: '#/definitions/models.PasteListResponse'
+            $ref: '#/definitions/models.APIResponse-models_PasteListData'
         "400":
           description: Bad Request
           schema:
@@ -513,6 +551,4 @@ paths:
       summary: Update a user
       tags:
       - users
-schemes:
-- http
 swagger: "2.0"

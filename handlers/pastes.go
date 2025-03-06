@@ -4,7 +4,6 @@ import (
 	"memoria-backend/models"
 	"memoria-backend/services"
 	"memoria-backend/utils"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +24,7 @@ func NewPasteHandler(pasteService services.PasteService) *PasteHandler {
 // @Accept json
 // @Produce json
 // @Param paste body models.CreatePasteRequest true "Paste data"
-// @Success 200 {object} models.PasteResponse
+// @Success 200 {object} models.APIResponse[models.PasteData] "Success response with paste data"
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste [post]
@@ -48,12 +47,14 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 	paste, err := h.pasteService.Create(ctx, &req)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create paste")
-		utils.RespondInternalError(c, err, "Invalid paste data format")
+		utils.RespondInternalError(c, err, "Failed to create paste")
 		return
 	}
 
 	log.Info().Uint64("paste_id", paste.ID).Msg("Successfully created paste")
-	c.JSON(http.StatusOK, gin.H{"paste": paste})
+
+	pasteData := models.PasteData{Paste: paste}
+	utils.RespondCreated(c, pasteData, "Paste created successfully")
 }
 
 // GetPaste godoc
@@ -62,8 +63,9 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 // @Tags pastes
 // @Param id path uint64 true "Paste ID"
 // @Produce json
-// @Success 200 {object} models.PasteResponse
+// @Success 200 {object} models.APIResponse[models.PasteData] "Success response with paste data"
 // @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse "Paste not found"
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste/{id} [get]
 func (h *PasteHandler) GetPaste(c *gin.Context) {
@@ -75,7 +77,7 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("idStr", idStr).Msg("Failed to parse ID for paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondBadRequest(c, err, "Invalid paste ID format")
 		return
 	}
 
@@ -84,12 +86,14 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 	paste, err := h.pasteService.GetByID(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("paste_id", id).Msg("Failed to retrieve paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondNotFound(c, err, "Paste not found")
 		return
 	}
 
 	log.Info().Uint64("paste_id", id).Msg("Successfully retrieved paste")
-	c.JSON(http.StatusOK, gin.H{"paste": paste})
+
+	pasteData := models.PasteData{Paste: paste}
+	utils.RespondOK(c, pasteData, "Paste retrieved successfully")
 }
 
 // UpdatePaste godoc
@@ -99,7 +103,8 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param paste body models.UpdatePasteRequest true "Updated paste data"
-// @Success 200 {object} models.PasteResponse
+// @Success 200 {object} models.APIResponse[models.PasteData] "Success response with paste data"
+// @Failure 404 {object} models.ErrorResponse "Paste not found"
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste [put]
@@ -110,7 +115,7 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 	var req models.UpdatePasteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Failed to bind JSON for update paste request")
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondBadRequest(c, err, "Invalid paste data format")
 		return
 	}
 
@@ -123,12 +128,14 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 	paste, err := h.pasteService.Update(ctx, &req)
 	if err != nil {
 		log.Error().Err(err).Uint64("paste_id", req.ID).Msg("Failed to update paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondInternalError(c, err, "Failed to update paste")
 		return
 	}
 
 	log.Info().Uint64("paste_id", req.ID).Msg("Successfully updated paste")
-	c.JSON(http.StatusOK, gin.H{"paste": paste})
+
+	pasteData := models.PasteData{Paste: paste}
+	utils.RespondOK(c, pasteData, "Paste updated successfully")
 }
 
 // DeletePaste godoc
@@ -138,10 +145,9 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 // @Accept json
 // @Param id path uint64 true "Paste ID"
 // @Produce json
-// @Success 200 {object} models.PasteResponse
-// @Failure 400 {object} models.ErrorResponse
+// @Success 200 {object} models.APIResponse[uint64]
 // @Failure 404 {object} models.ErrorResponse
-// @Failure 500 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse "Internal Server Error"
 // @Router /paste [delete]
 func (h *PasteHandler) DeletePaste(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -152,21 +158,23 @@ func (h *PasteHandler) DeletePaste(c *gin.Context) {
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		log.Error().Err(err).Str("idStr", idStr).Msg("Failed to parse ID for paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondBadRequest(c, err, "Invalid paste ID format")
 		return
 	}
 
 	log.Info().Uint64("paste_id", id).Msg("Deleting paste")
 
-	paste, err := h.pasteService.Delete(ctx, id)
+	deletedID, err := h.pasteService.Delete(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Uint64("paste_id", id).Msg("Failed to delete paste")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondNotFound(c, err, "Paste not found or could not be deleted")
 		return
 	}
 
 	log.Info().Uint64("paste_id", id).Msg("Successfully deleted paste")
-	c.JSON(http.StatusOK, gin.H{"paste": paste})
+
+	// For delete operations, you can return an empty data struct or the deleted paste
+	utils.RespondOK(c, deletedID, "Paste deleted successfully")
 }
 
 // ListPastes godoc
@@ -177,7 +185,7 @@ func (h *PasteHandler) DeletePaste(c *gin.Context) {
 // @Produce json
 // @Param page query int false "Page number" default(1)
 // @Param limit query int false "Items per page" default(10)
-// @Success 200 {object} models.PasteListResponse
+// @Success 200 {object} models.APIResponse[models.PasteListData] "Success response with paste list data"
 // @Failure 400 {object} models.ErrorResponse
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste/all [get]
@@ -185,23 +193,24 @@ func (h *PasteHandler) ListPastes(c *gin.Context) {
 	ctx := c.Request.Context()
 	log := utils.LoggerFromContext(ctx)
 
-	// var req models.PasteListRequest
-	// if err := c.ShouldBindJSON(&req); err != nil {
-	// 	log.Error().Err(err).Msg("Failed to bind JSON for list pastes request")
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
+	// Parse pagination parameters
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
-	log.Info().Msg("Retrieving all pastes")
+	log.Info().Int("page", page).Int("limit", limit).Msg("Retrieving pastes")
 
-	// TODO: Implement pagination, per page list request format
 	pastes, err := h.pasteService.GetAll(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to retrieve all pastes")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondInternalError(c, err, "Failed to retrieve pastes")
 		return
 	}
 
 	log.Info().Int("count", len(pastes)).Msg("Successfully retrieved pastes")
-	c.JSON(http.StatusOK, gin.H{"pastes": pastes})
+
+	pasteListData := models.PasteListData{
+		Pastes: pastes,
+		Count:  len(pastes),
+	}
+	utils.RespondOK(c, pasteListData, "Pastes retrieved successfully")
 }

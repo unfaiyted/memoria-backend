@@ -30,8 +30,25 @@ type ErrorResponse struct {
 }
 
 // APIResponse represents a generic API response
-type APIResponse struct {
-	Success bool        `json:"success" example:"true"`
-	Message string      `json:"message,omitempty" example:"Operation successful"`
-	Data    interface{} `json:"data,omitempty"`
+type APIResponse[T any] struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message,omitempty" example:"Operation successful"`
+	Data    T      `json:"data,omitempty"`
+}
+
+// Type-specific response creators
+func NewPasteResponse(paste *Paste, message string) APIResponse[PasteData] {
+	return APIResponse[PasteData]{
+		Success: true,
+		Message: message,
+		Data:    PasteData{Paste: paste},
+	}
+}
+
+func NewPasteListResponse(pastes []Paste, count int) APIResponse[PasteListData] {
+	return APIResponse[PasteListData]{
+		Success: true,
+		Message: "Pastes retrieved successfully",
+		Data:    PasteListData{Pastes: pastes, Count: count},
+	}
 }

@@ -43,11 +43,10 @@ func (Paste) TableName() string {
 	return "pastes"
 }
 
-// PasteResponse represents the response structure for paste endpoints
-// @Description Paste response wrapper
-type PasteResponse struct {
-	Data  *Paste `json:"data,omitempty"`
-	Error string `json:"error,omitempty"`
+// // PasteData represents the response  data for paste endpoints
+// // @Description Paste data response wrapper
+type PasteData struct {
+	Paste *Paste `json:"paste,omitempty"`
 }
 
 // PasteRequest
@@ -58,8 +57,7 @@ type PasteRequest struct {
 
 // PasteListResponse represents a list of pastes in response
 // @Description List of pastes response wrapper
-type PasteListResponse struct {
-	Data  []Paste `json:"data,omitempty"`
-	Count int     `json:"count,omitempty"`
-	Error string  `json:"error,omitempty"`
+type PasteListData struct {
+	Pastes []Paste `json:"pastes,omitempty"`
+	Count  int     `json:"count,omitempty"`
 }

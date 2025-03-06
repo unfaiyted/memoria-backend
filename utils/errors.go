@@ -121,8 +121,8 @@ func RespondServiceUnavailable(c *gin.Context, err error, customMessage ...strin
 }
 
 // RespondSuccess creates a standardized success response
-func RespondSuccess(c *gin.Context, statusCode int, data interface{}, message string) {
-	response := models.APIResponse{
+func RespondSuccess[T any](c *gin.Context, statusCode int, data T, message string) {
+	response := models.APIResponse[T]{
 		Success: true,
 		Data:    data,
 		Message: message,
@@ -132,7 +132,7 @@ func RespondSuccess(c *gin.Context, statusCode int, data interface{}, message st
 }
 
 // Convenience functions for success responses
-func RespondOK(c *gin.Context, data interface{}, message ...string) {
+func RespondOK[T any](c *gin.Context, data T, message ...string) {
 	msg := "Success"
 	if len(message) > 0 && message[0] != "" {
 		msg = message[0]
@@ -140,7 +140,7 @@ func RespondOK(c *gin.Context, data interface{}, message ...string) {
 	RespondSuccess(c, http.StatusOK, data, msg)
 }
 
-func RespondCreated(c *gin.Context, data interface{}, message ...string) {
+func RespondCreated[T any](c *gin.Context, data T, message ...string) {
 	msg := "Resource created successfully"
 	if len(message) > 0 && message[0] != "" {
 		msg = message[0]

@@ -9,16 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -76,13 +67,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success response with paste data",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteResponse"
+                            "$ref": "#/definitions/models.APIResponse-models_PasteData"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Paste not found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -120,9 +117,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success response with paste data",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteResponse"
+                            "$ref": "#/definitions/models.APIResponse-models_PasteData"
                         }
                     },
                     "400": {
@@ -164,13 +161,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
+                            "$ref": "#/definitions/models.APIResponse-uint64"
                         }
                     },
                     "404": {
@@ -219,9 +210,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success response with paste list data",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteListResponse"
+                            "$ref": "#/definitions/models.APIResponse-models_PasteListData"
                         }
                     },
                     "400": {
@@ -260,13 +251,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success response with paste data",
                         "schema": {
-                            "$ref": "#/definitions/models.PasteResponse"
+                            "$ref": "#/definitions/models.APIResponse-models_PasteData"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Paste not found",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -498,6 +495,54 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.APIResponse-models_PasteData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.PasteData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-models_PasteListData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.PasteListData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.APIResponse-uint64": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.CreatePasteRequest": {
             "type": "object",
             "required": [
@@ -547,6 +592,12 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "This is a pretty message"
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
                 }
             }
         },
@@ -557,14 +608,28 @@ const docTemplate = `{
                 "UNAUTHORIZED",
                 "NOT_FOUND",
                 "BAD_REQUEST",
-                "INTERNAL_ERROR"
+                "INTERNAL_ERROR",
+                "FORBIDDEN",
+                "CONFLICT",
+                "VALIDATION_ERROR",
+                "RATE_LIMITED",
+                "TIMEOUT",
+                "SERVICE_UNAVAILABLE",
+                "UNPROCESSABLE_ENTITY"
             ],
             "x-enum-varnames": [
                 "ErrorTypeFailedCheck",
                 "ErrorTypeUnauthorized",
                 "ErrorTypeNotFound",
                 "ErrorTypeBadRequest",
-                "ErrorTypeInternalError"
+                "ErrorTypeInternalError",
+                "ErrorTypeForbidden",
+                "ErrorTypeConflict",
+                "ErrorTypeValidation",
+                "ErrorTypeRateLimited",
+                "ErrorTypeTimeout",
+                "ErrorTypeServiceUnavailable",
+                "ErrorTypeUnprocessableEntity"
             ]
         },
         "models.HealthResponse": {
@@ -646,33 +711,26 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PasteListResponse": {
+        "models.PasteData": {
+            "type": "object",
+            "properties": {
+                "paste": {
+                    "$ref": "#/definitions/models.Paste"
+                }
+            }
+        },
+        "models.PasteListData": {
             "description": "List of pastes response wrapper",
             "type": "object",
             "properties": {
                 "count": {
                     "type": "integer"
                 },
-                "data": {
+                "pastes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Paste"
                     }
-                },
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.PasteResponse": {
-            "description": "Paste response wrapper",
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.Paste"
-                },
-                "error": {
-                    "type": "string"
                 }
             }
         },
@@ -761,12 +819,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8080",
-	BasePath:         "/api/v1",
-	Schemes:          []string{"http"},
-	Title:            "Memoria API",
-	Description:      "API Server for Memoria application",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
+	Schemes:          []string{},
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
