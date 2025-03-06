@@ -20,7 +20,7 @@ func Setup(db *gorm.DB, configService services.ConfigService) *gin.Engine {
 	r.Use(cors.New(config))
 
 	// Setup API v1 routes
-	v1 := r.Group("/api/v1")
+	v1 := r.Group("/v1")
 
 	healthService := services.NewHealthService(db)
 
