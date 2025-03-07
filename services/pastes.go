@@ -89,15 +89,15 @@ func (s *pasteService) Create(ctx context.Context, newPaste *models.CreatePasteR
 		Privacy:         newPaste.Privacy,
 	}
 
-	if newPaste.Privacy == "private" {
-		privateID, err := generatePrivateAccessID()
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to generatea a Private Access ID")
-			return nil, err
-		}
-		paste.PrivateAccessID = privateID
-		log.Info().Str("privateAccessId", privateID).Msg("Generated PrivateAccessId for private paste")
+	// if newPaste.Privacy == "private" {
+	privateID, err := generatePrivateAccessID()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to generatea a Private Access ID")
+		return nil, err
 	}
+	paste.PrivateAccessID = privateID
+	log.Info().Str("privateAccessId", privateID).Msg("Generated PrivateAccessId for private paste")
+	// }
 
 	if newPaste.Password != "" {
 		hashedPassword, err := hashPassword(newPaste.Password)
