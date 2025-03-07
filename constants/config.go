@@ -34,5 +34,5 @@ var DefaultConfig = map[string]interface{}{
 	"auth.sessionTimeout":  60,
 	"auth.enable2FA":       false,
 	"auth.tokenExpiration": 24,
-	"auth.allowedOrigins":  []string{"http://localhost:3000"},
+	"auth.allowedOrigins":  []string{"http://localhost:5173"},
 }
