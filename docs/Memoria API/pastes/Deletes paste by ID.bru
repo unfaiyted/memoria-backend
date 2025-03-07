@@ -1,11 +1,15 @@
 meta {
   name: Deletes paste by ID
   type: http
-  seq: 4
+  seq: 3
 }
 
 delete {
   url: {{baseUrl}}/paste
   body: none
   auth: none
+}
+
+params:path {
+  id: 
 }

@@ -1,3 +1,4 @@
+basePath: /api/v1
 definitions:
   models.APIResponse-models_PasteData:
     properties:
@@ -36,8 +37,17 @@ definitions:
     properties:
       content:
         type: string
-      expires_at:
+      editorType:
+        enum:
+        - code
+        - text
+        example: code
+        type: string
+      expiresAt:
         example: "2023-01-08T00:00:00Z"
+        type: string
+      password:
+        example: mySecurePassword123
         type: string
       privacy:
         enum:
@@ -45,7 +55,7 @@ definitions:
         - private
         - password
         type: string
-      syntax_highlight:
+      syntaxHighlight:
         type: string
       title:
         type: string
@@ -126,24 +136,32 @@ definitions:
       content:
         example: console.log('Hello world');
         type: string
-      created_at:
+      createdAt:
         example: "2023-01-01T00:00:00Z"
         type: string
-      expires_at:
+      editorType:
+        enum:
+        - code
+        - text
+        example: code
+        type: string
+      expiresAt:
         example: "2023-01-08T00:00:00Z"
         type: string
       id:
         example: 123111
         type: integer
       privacy:
-        description: '"public", "private", "password"'
+        description: '"public", "private"'
         enum:
         - public
         - private
-        - password
         example: public
         type: string
-      syntax_highlight:
+      privateAccessId:
+        example: abc123xyz456
+        type: string
+      syntaxHighlight:
         example: javascript
         type: string
       title:
@@ -154,9 +172,10 @@ definitions:
         type: string
     required:
     - content
+    - editorType
     - id
     - privacy
-    - syntax_highlight
+    - syntaxHighlight
     - title
     type: object
   models.PasteData:
@@ -178,18 +197,23 @@ definitions:
     properties:
       content:
         type: string
-      expires_at:
+      editorType:
+        type: string
+      expiresAt:
         example: "2023-01-08T00:00:00Z"
         type: string
       id:
         type: integer
+      password:
+        example: mySecurePassword123
+        type: string
       privacy:
         enum:
         - public
         - private
         - password
         type: string
-      syntax_highlight:
+      syntaxHighlight:
         type: string
       title:
         type: string
@@ -232,8 +256,19 @@ definitions:
       name:
         type: string
     type: object
+host: localhost:8080
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API Server for Memoria application
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Memoria API
+  version: "1.0"
 paths:
   /health:
     get:
@@ -352,6 +387,10 @@ paths:
         name: id
         required: true
         type: integer
+      - description: Password for protected pastes
+        in: query
+        name: pw
+        type: string
       produces:
       - application/json
       responses:
@@ -361,6 +400,10 @@ paths:
             $ref: '#/definitions/models.APIResponse-models_PasteData'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Pssword required or invalid password
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "404":
@@ -406,6 +449,41 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Lists out all the pastes
+      tags:
+      - pastes
+  /paste/private/{accessId}:
+    get:
+      description: Retrieve a private paste by its private access ID
+      parameters:
+      - description: Private Access ID
+        in: path
+        name: accessId
+        required: true
+        type: string
+      - description: Password for protected pastes
+        in: query
+        name: pw
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response with paste data
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_PasteData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Paste not found
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Gets a specific private paste using its private access ID
       tags:
       - pastes
   /users:
@@ -551,4 +629,6 @@ paths:
       summary: Update a user
       tags:
       - users
+schemes:
+- http
 swagger: "2.0"

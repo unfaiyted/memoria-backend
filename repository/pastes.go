@@ -10,6 +10,7 @@ import (
 type PasteRepository interface {
 	GetAll(ctx context.Context) ([]models.Paste, error)
 	GetByID(ctx context.Context, id uint64) (*models.Paste, error)
+	GetByPrivateAccessID(ctx context.Context, privateAccessID string) (*models.Paste, error)
 	Create(ctx context.Context, paste *models.Paste) (*models.Paste, error)
 	Update(ctx context.Context, paste *models.Paste) (*models.Paste, error)
 	Delete(ctx context.Context, id uint64) (uint64, error)
@@ -28,7 +29,7 @@ func NewPasteRepository(db *gorm.DB) PasteRepository {
 func (r *pasteRepository) GetAll(ctx context.Context) ([]models.Paste, error) {
 	var pastes []models.Paste
 
-	result := r.db.Find(&pastes)
+	result := r.db.Where("privacy = ?", "public").Find(&pastes)
 	return pastes, result.Error
 }
 
@@ -52,4 +53,10 @@ func (r *pasteRepository) Delete(ctx context.Context, id uint64) (uint64, error)
 	var paste models.Paste
 	result := r.db.Delete(&paste, id)
 	return id, result.Error
+}
+
+func (r *pasteRepository) GetByPrivateAccessID(ctx context.Context, privateAccessID string) (*models.Paste, error) {
+	var paste models.Paste
+	result := r.db.Where("private_access_id = ?", privateAccessID).First(&paste)
+	return &paste, result.Error
 }

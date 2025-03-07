@@ -39,9 +39,14 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 		return
 	}
 
+	// if req.EditorType == "" {
+	// 	req.EditorType = "code"
+	// }
+	//
+
 	log.Info().
 		Str("title", req.Title).
-		Str("content_preview", utils.Truncate(req.Content, 50)).
+		Str("contentPreview", utils.Truncate(req.Content, 50)).
 		Msg("Creating new paste")
 
 	paste, err := h.pasteService.Create(ctx, &req)
@@ -51,7 +56,7 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("paste_id", paste.ID).Msg("Successfully created paste")
+	log.Info().Uint64("pasteId", paste.ID).Msg("Successfully created paste")
 
 	pasteData := models.PasteData{Paste: paste}
 	utils.RespondCreated(c, pasteData, "Paste created successfully")
@@ -62,9 +67,11 @@ func (h *PasteHandler) CreatePaste(c *gin.Context) {
 // @Description Retrieve a paste by ID
 // @Tags pastes
 // @Param id path uint64 true "Paste ID"
+// @Param pw query string false "Password for protected pastes"
 // @Produce json
 // @Success 200 {object} models.APIResponse[models.PasteData] "Success response with paste data"
 // @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse "Pssword required or invalid password"
 // @Failure 404 {object} models.ErrorResponse "Paste not found"
 // @Failure 500 {object} models.ErrorResponse
 // @Router /paste/{id} [get]
@@ -81,16 +88,47 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("paste_id", id).Msg("Retrieving paste")
+	log.Info().Uint64("pasteId", id).Msg("Retrieving paste")
 
 	paste, err := h.pasteService.GetByID(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Uint64("paste_id", id).Msg("Failed to retrieve paste")
+		log.Error().Err(err).Uint64("pasteId", id).Msg("Failed to retrieve paste")
 		utils.RespondNotFound(c, err, "Paste not found")
 		return
 	}
 
-	log.Info().Uint64("paste_id", id).Msg("Successfully retrieved paste")
+	// Check if paste is private - if so, don't allow access through this endpoint
+	if paste.Privacy == "private" {
+		log.Info().Uint64("pasteId", id).Msg("Attempted to access private paste without access ID")
+		utils.RespondForbidden(c, nil, "This is a private paste. Please use the private access ID to view it.")
+		return
+	}
+
+	if paste.Password != "" {
+		providedPassword := c.Query("pw")
+
+		if providedPassword == "" {
+			log.Info().Uint64("pasteId", id).Msg("Attempted to access password-protected paste without password")
+			utils.RespondUnauthorized(c, err, "Error verifying password")
+			return
+		}
+
+		passwordValid, err := h.pasteService.VerifyPassword(ctx, id, providedPassword)
+		if err != nil {
+			log.Error().Err(err).Uint64("pasteId", id).Msg("Error verifying password")
+			utils.RespondInternalError(c, err, "Error verifying password")
+			return
+		}
+
+		if !passwordValid {
+			log.Info().Uint64("pasteId", id).Msg("Invalid Password provided for password protected paste")
+			utils.RespondUnauthorized(c, err, "Invalid password")
+			return
+		}
+
+	}
+
+	log.Info().Uint64("pasteId", id).Msg("Successfully retrieved paste")
 
 	pasteData := models.PasteData{Paste: paste}
 	utils.RespondOK(c, pasteData, "Paste retrieved successfully")
@@ -120,19 +158,19 @@ func (h *PasteHandler) UpdatePaste(c *gin.Context) {
 	}
 
 	log.Info().
-		Uint64("paste_id", req.ID).
+		Uint64("pasteId", req.ID).
 		Str("title", req.Title).
-		Str("content_preview", utils.Truncate(req.Content, 50)).
+		Str("contentPreview", utils.Truncate(req.Content, 50)).
 		Msg("Updating paste")
 
 	paste, err := h.pasteService.Update(ctx, &req)
 	if err != nil {
-		log.Error().Err(err).Uint64("paste_id", req.ID).Msg("Failed to update paste")
+		log.Error().Err(err).Uint64("pasteId", req.ID).Msg("Failed to update paste")
 		utils.RespondInternalError(c, err, "Failed to update paste")
 		return
 	}
 
-	log.Info().Uint64("paste_id", req.ID).Msg("Successfully updated paste")
+	log.Info().Uint64("pasteId", req.ID).Msg("Successfully updated paste")
 
 	pasteData := models.PasteData{Paste: paste}
 	utils.RespondOK(c, pasteData, "Paste updated successfully")
@@ -162,16 +200,16 @@ func (h *PasteHandler) DeletePaste(c *gin.Context) {
 		return
 	}
 
-	log.Info().Uint64("paste_id", id).Msg("Deleting paste")
+	log.Info().Uint64("pasteId", id).Msg("Deleting paste")
 
 	deletedID, err := h.pasteService.Delete(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Uint64("paste_id", id).Msg("Failed to delete paste")
+		log.Error().Err(err).Uint64("pasteId", id).Msg("Failed to delete paste")
 		utils.RespondNotFound(c, err, "Paste not found or could not be deleted")
 		return
 	}
 
-	log.Info().Uint64("paste_id", id).Msg("Successfully deleted paste")
+	log.Info().Uint64("pasteId", id).Msg("Successfully deleted paste")
 
 	// For delete operations, you can return an empty data struct or the deleted paste
 	utils.RespondOK(c, deletedID, "Paste deleted successfully")
@@ -213,4 +251,60 @@ func (h *PasteHandler) ListPastes(c *gin.Context) {
 		Count:  len(pastes),
 	}
 	utils.RespondOK(c, pasteListData, "Pastes retrieved successfully")
+}
+
+// GetPasteByPrivateAccessID godoc
+// @Summary Gets a specific private paste using its private access ID
+// @Description Retrieve a private paste by its private access ID
+// @Tags pastes
+// @Param accessId path string true "Private Access ID"
+// @Param pw query string false "Password for protected pastes"
+// @Produce json
+// @Success 200 {object} models.APIResponse[models.PasteData] "Success response with paste data"
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 404 {object} models.ErrorResponse "Paste not found"
+// @Failure 500 {object} models.ErrorResponse
+// @Router /paste/private/{accessId} [get]
+func (h *PasteHandler) GetPasteByPrivateAccessID(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	accessID := c.Param("accessId")
+	log.Info().Str("privateAccessId", accessID).Msg("Retrieving paste by private access ID")
+
+	paste, err := h.pasteService.GetByPrivateAccessID(ctx, accessID)
+	if err != nil {
+		log.Error().Err(err).Str("privateAccessId", accessID).Msg("Failed to retrieve paste")
+		utils.RespondNotFound(c, err, "Paste not found")
+		return
+	}
+
+	if paste.Password != "" {
+		providedPassword := c.Query("pw")
+
+		if providedPassword == "" {
+			log.Info().Uint64("id", paste.ID).Msg("Attempted to access password-protected paste without password")
+			utils.RespondUnauthorized(c, err, "Error verifying password")
+			return
+		}
+
+		passwordValid, err := h.pasteService.VerifyPassword(ctx, paste.ID, providedPassword)
+		if err != nil {
+			log.Error().Err(err).Uint64("pasteId", paste.ID).Msg("Error verifying password")
+			utils.RespondInternalError(c, err, "Error verifying password")
+			return
+		}
+
+		if !passwordValid {
+			log.Info().Uint64("pasteId", paste.ID).Msg("Invalid Password provided for password protected paste")
+			utils.RespondUnauthorized(c, err, "Invalid password")
+			return
+		}
+
+	}
+
+	log.Info().Str("privateAccessId", accessID).Msg("Successfully retrieved paste")
+
+	pasteData := models.PasteData{Paste: paste}
+	utils.RespondOK(c, pasteData, "Paste retrieved successfully")
 }

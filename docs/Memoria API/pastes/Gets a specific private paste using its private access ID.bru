@@ -1,0 +1,15 @@
+meta {
+  name: Gets a specific private paste using its private access ID
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/paste/private/:access_id
+  body: none
+  auth: none
+}
+
+params:path {
+  access_id: 
+}

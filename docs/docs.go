@@ -9,7 +9,16 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -230,6 +239,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/paste/private/{accessId}": {
+            "get": {
+                "description": "Retrieve a private paste by its private access ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "Gets a specific private paste using its private access ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Private Access ID",
+                        "name": "accessId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password for protected pastes",
+                        "name": "pw",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response with paste data",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_PasteData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Paste not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/paste/{id}": {
             "get": {
                 "description": "Retrieve a paste by ID",
@@ -247,6 +309,12 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password for protected pastes",
+                        "name": "pw",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -258,6 +326,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Pssword required or invalid password",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -554,9 +628,21 @@ const docTemplate = `{
                 "content": {
                     "type": "string"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string",
+                    "enum": [
+                        "code",
+                        "text"
+                    ],
+                    "example": "code"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "mySecurePassword123"
                 },
                 "privacy": {
                     "type": "string",
@@ -566,7 +652,7 @@ const docTemplate = `{
                         "password"
                     ]
                 },
-                "syntax_highlight": {
+                "syntaxHighlight": {
                     "type": "string"
                 },
                 "title": {
@@ -665,9 +751,10 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "content",
+                "editorType",
                 "id",
                 "privacy",
-                "syntax_highlight",
+                "syntaxHighlight",
                 "title"
             ],
             "properties": {
@@ -675,11 +762,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "console.log('Hello world');"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string",
                     "example": "2023-01-01T00:00:00Z"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string",
+                    "enum": [
+                        "code",
+                        "text"
+                    ],
+                    "example": "code"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
                 },
@@ -688,16 +783,19 @@ const docTemplate = `{
                     "example": 123111
                 },
                 "privacy": {
-                    "description": "\"public\", \"private\", \"password\"",
+                    "description": "\"public\", \"private\"",
                     "type": "string",
                     "enum": [
                         "public",
-                        "private",
-                        "password"
+                        "private"
                     ],
                     "example": "public"
                 },
-                "syntax_highlight": {
+                "privateAccessId": {
+                    "type": "string",
+                    "example": "abc123xyz456"
+                },
+                "syntaxHighlight": {
                     "type": "string",
                     "example": "javascript"
                 },
@@ -746,12 +844,19 @@ const docTemplate = `{
                 "content": {
                     "type": "string"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "mySecurePassword123"
                 },
                 "privacy": {
                     "type": "string",
@@ -761,7 +866,7 @@ const docTemplate = `{
                         "password"
                     ]
                 },
-                "syntax_highlight": {
+                "syntaxHighlight": {
                     "type": "string"
                 },
                 "title": {
@@ -819,12 +924,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/api/v1",
+	Schemes:          []string{"http"},
+	Title:            "Memoria API",
+	Description:      "API Server for Memoria application",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

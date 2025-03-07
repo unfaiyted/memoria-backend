@@ -1,8 +1,25 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "API Server for Memoria application",
+        "title": "Memoria API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
     "paths": {
         "/health": {
             "get": {
@@ -219,6 +236,59 @@
                 }
             }
         },
+        "/paste/private/{accessId}": {
+            "get": {
+                "description": "Retrieve a private paste by its private access ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "Gets a specific private paste using its private access ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Private Access ID",
+                        "name": "accessId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password for protected pastes",
+                        "name": "pw",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response with paste data",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_PasteData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Paste not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/paste/{id}": {
             "get": {
                 "description": "Retrieve a paste by ID",
@@ -236,6 +306,12 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password for protected pastes",
+                        "name": "pw",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -247,6 +323,12 @@
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Pssword required or invalid password",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -543,9 +625,21 @@
                 "content": {
                     "type": "string"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string",
+                    "enum": [
+                        "code",
+                        "text"
+                    ],
+                    "example": "code"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "mySecurePassword123"
                 },
                 "privacy": {
                     "type": "string",
@@ -555,7 +649,7 @@
                         "password"
                     ]
                 },
-                "syntax_highlight": {
+                "syntaxHighlight": {
                     "type": "string"
                 },
                 "title": {
@@ -654,9 +748,10 @@
             "type": "object",
             "required": [
                 "content",
+                "editorType",
                 "id",
                 "privacy",
-                "syntax_highlight",
+                "syntaxHighlight",
                 "title"
             ],
             "properties": {
@@ -664,11 +759,19 @@
                     "type": "string",
                     "example": "console.log('Hello world');"
                 },
-                "created_at": {
+                "createdAt": {
                     "type": "string",
                     "example": "2023-01-01T00:00:00Z"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string",
+                    "enum": [
+                        "code",
+                        "text"
+                    ],
+                    "example": "code"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
                 },
@@ -677,16 +780,19 @@
                     "example": 123111
                 },
                 "privacy": {
-                    "description": "\"public\", \"private\", \"password\"",
+                    "description": "\"public\", \"private\"",
                     "type": "string",
                     "enum": [
                         "public",
-                        "private",
-                        "password"
+                        "private"
                     ],
                     "example": "public"
                 },
-                "syntax_highlight": {
+                "privateAccessId": {
+                    "type": "string",
+                    "example": "abc123xyz456"
+                },
+                "syntaxHighlight": {
                     "type": "string",
                     "example": "javascript"
                 },
@@ -735,12 +841,19 @@
                 "content": {
                     "type": "string"
                 },
-                "expires_at": {
+                "editorType": {
+                    "type": "string"
+                },
+                "expiresAt": {
                     "type": "string",
                     "example": "2023-01-08T00:00:00Z"
                 },
                 "id": {
                     "type": "integer"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "mySecurePassword123"
                 },
                 "privacy": {
                     "type": "string",
@@ -750,7 +863,7 @@
                         "password"
                     ]
                 },
-                "syntax_highlight": {
+                "syntaxHighlight": {
                     "type": "string"
                 },
                 "title": {

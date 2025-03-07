@@ -1,11 +1,19 @@
 meta {
   name: Gets a specific paste
   type: http
-  seq: 1
+  seq: 6
 }
 
 get {
-  url: {{baseUrl}}/paste
+  url: {{baseUrl}}/paste/:id
   body: none
   auth: none
+}
+
+params:query {
+  ~pw: 
+}
+
+params:path {
+  id: 
 }

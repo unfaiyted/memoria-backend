@@ -1,11 +1,16 @@
 meta {
   name: Lists out all the pastes
   type: http
-  seq: 5
+  seq: 4
 }
 
 get {
   url: {{baseUrl}}/paste/all
   body: none
   auth: none
+}
+
+params:query {
+  ~page: 
+  ~limit: 
 }
