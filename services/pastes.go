@@ -7,6 +7,8 @@ import (
 	"memoria-backend/models"
 	"memoria-backend/repository"
 	"memoria-backend/utils"
+	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,6 +17,7 @@ type PasteService interface {
 	GetAll(ctx context.Context) ([]models.Paste, error)
 	GetByID(ctx context.Context, id uint64) (*models.Paste, error)
 	GetByPrivateAccessID(ctx context.Context, privateAccessID string) (*models.Paste, error)
+	GetByPrivateAccessIDs(ctx context.Context, privateAccessIDs []string) ([]models.Paste, error)
 	Create(ctx context.Context, newPaste *models.CreatePasteRequest) (*models.Paste, error)
 	Update(ctx context.Context, updatedPaste *models.UpdatePasteRequest) (*models.Paste, error)
 	Delete(ctx context.Context, id uint64) (uint64, error)
@@ -52,11 +55,31 @@ func hashPassword(password string) (string, error) {
 
 func (s *pasteService) GetAll(ctx context.Context) ([]models.Paste, error) {
 	pastes, err := s.repo.GetAll(ctx)
+
+	// replace content field for pastes that are private
+	var validPastes []models.Paste
+	now := time.Now()
+	for _, paste := range pastes {
+		// Skip expired pastes
+		if !paste.ExpiresAt.IsZero() && paste.ExpiresAt.Before(now) {
+			continue
+		}
+		// Protect content of password-protected pastes
+		if paste.Password != "" {
+			// Create a copy to avoid modifying the original
+			pasteCopy := paste
+			pasteCopy.Content = models.PasswordProtectedContentPlaceholder
+			validPastes = append(validPastes, pasteCopy)
+		} else {
+			validPastes = append(validPastes, paste)
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	return pastes, nil
+	return validPastes, nil
 }
 
 func (s *pasteService) GetByID(ctx context.Context, id uint64) (*models.Paste, error) {
@@ -208,4 +231,48 @@ func (s *pasteService) VerifyPassword(ctx context.Context, id uint64, providedPa
 
 	log.Debug().Uint64("id", id).Msg("Password successfully verified")
 	return true, nil
+}
+
+func (s *pasteService) GetByPrivateAccessIDs(ctx context.Context, privateAccessIDs []string) ([]models.Paste, error) {
+	log := utils.LoggerFromContext(ctx)
+
+	// Filter out any empty strings
+	var validIDs []string
+	for _, id := range privateAccessIDs {
+		if id = strings.TrimSpace(id); id != "" {
+			validIDs = append(validIDs, id)
+		}
+	}
+
+	if len(validIDs) == 0 {
+		log.Info().Msg("No valid private access IDs provided")
+		return []models.Paste{}, nil
+	}
+
+	pastes, err := s.repo.GetByPrivateAccessIDs(ctx, validIDs)
+	if err != nil {
+		log.Error().Err(err).Strs("privateAccessIDs", validIDs).Msg("Failed to retrieve pastes by private access IDs")
+		return nil, err
+	}
+
+	// replace content field for pastes that are private
+	var validPastes []models.Paste
+	now := time.Now()
+	for _, paste := range pastes {
+		// Skip expired pastes
+		if !paste.ExpiresAt.IsZero() && paste.ExpiresAt.Before(now) {
+			continue
+		}
+		// Protect content of password-protected pastes
+		if paste.Password != "" {
+			// Create a copy to avoid modifying the original
+			pasteCopy := paste
+			pasteCopy.Content = models.PasswordProtectedContentPlaceholder
+			validPastes = append(validPastes, pasteCopy)
+		} else {
+			validPastes = append(validPastes, paste)
+		}
+	}
+
+	return validPastes, nil
 }

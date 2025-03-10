@@ -4,13 +4,13 @@ import (
 	"context"
 	"gorm.io/gorm"
 	"memoria-backend/models"
-	"time"
 )
 
 type PasteRepository interface {
 	GetAll(ctx context.Context) ([]models.Paste, error)
 	GetByID(ctx context.Context, id uint64) (*models.Paste, error)
 	GetByPrivateAccessID(ctx context.Context, privateAccessID string) (*models.Paste, error)
+	GetByPrivateAccessIDs(ctx context.Context, privateAccessIDs []string) ([]models.Paste, error)
 	Create(ctx context.Context, paste *models.Paste) (*models.Paste, error)
 	Update(ctx context.Context, paste *models.Paste) (*models.Paste, error)
 	Delete(ctx context.Context, id uint64) (uint64, error)
@@ -29,7 +29,7 @@ func NewPasteRepository(db *gorm.DB) PasteRepository {
 func (r *pasteRepository) GetAll(ctx context.Context) ([]models.Paste, error) {
 	var pastes []models.Paste
 
-	result := r.db.Where("privacy = ?", "public").Where("expires_at IS NULL OR expires_at > ?", time.Now()).Find(&pastes)
+	result := r.db.Where("privacy = ?", "public").Find(&pastes)
 	return pastes, result.Error
 }
 
@@ -59,4 +59,10 @@ func (r *pasteRepository) GetByPrivateAccessID(ctx context.Context, privateAcces
 	var paste models.Paste
 	result := r.db.Where("private_access_id = ?", privateAccessID).First(&paste)
 	return &paste, result.Error
+}
+
+func (r *pasteRepository) GetByPrivateAccessIDs(ctx context.Context, privateAccessIDs []string) ([]models.Paste, error) {
+	var pastes []models.Paste
+	result := r.db.Where("private_access_id IN ?", privateAccessIDs).Find(&pastes)
+	return pastes, result.Error
 }

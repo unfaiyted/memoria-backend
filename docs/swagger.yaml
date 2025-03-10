@@ -193,6 +193,14 @@ definitions:
           $ref: '#/definitions/models.Paste'
         type: array
     type: object
+  models.PrivateAccessIDsRequest:
+    properties:
+      accessIds:
+        example: abc123,def456,ghi789
+        type: string
+    required:
+    - accessIds
+    type: object
   models.UpdatePasteRequest:
     properties:
       content:
@@ -484,6 +492,37 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Gets a specific private paste using its private access ID
+      tags:
+      - pastes
+  /paste/private/batch:
+    post:
+      consumes:
+      - application/json
+      description: Retrieve multiple pastes by providing a comma-separated list of
+        private access IDs
+      parameters:
+      - description: List of private access IDs
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.PrivateAccessIDsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response with list of pastes
+          schema:
+            $ref: '#/definitions/models.APIResponse-models_PasteListData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Gets multiple pastes using their private access IDs
       tags:
       - pastes
   /users:

@@ -239,6 +239,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/paste/private/batch": {
+            "post": {
+                "description": "Retrieve multiple pastes by providing a comma-separated list of private access IDs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pastes"
+                ],
+                "summary": "Gets multiple pastes using their private access IDs",
+                "parameters": [
+                    {
+                        "description": "List of private access IDs",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PrivateAccessIDsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response with list of pastes",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIResponse-models_PasteListData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/paste/private/{accessId}": {
             "get": {
                 "description": "Retrieve a private paste by its private access ID",
@@ -829,6 +875,18 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Paste"
                     }
+                }
+            }
+        },
+        "models.PrivateAccessIDsRequest": {
+            "type": "object",
+            "required": [
+                "accessIds"
+            ],
+            "properties": {
+                "accessIds": {
+                    "type": "string",
+                    "example": "abc123,def456,ghi789"
                 }
             }
         },

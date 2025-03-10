@@ -7,6 +7,7 @@ import (
 	"memoria-backend/services"
 	"memoria-backend/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -335,4 +336,46 @@ func (h *PasteHandler) GetPasteByPrivateAccessID(c *gin.Context) {
 
 	pasteData := models.PasteData{Paste: paste}
 	utils.RespondOK(c, pasteData, "Paste retrieved successfully")
+}
+
+// GetPastesByPrivateAccessIDs godoc
+// @Summary Gets multiple pastes using their private access IDs
+// @Description Retrieve multiple pastes by providing a comma-separated list of private access IDs
+// @Tags pastes
+// @Accept json
+// @Produce json
+// @Param request body models.PrivateAccessIDsRequest true "List of private access IDs"
+// @Success 200 {object} models.APIResponse[models.PasteListData] "Success response with list of pastes"
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 500 {object} models.ErrorResponse
+// @Router /paste/private/batch [post]
+func (h *PasteHandler) GetPastesByPrivateAccessIDs(c *gin.Context) {
+	ctx := c.Request.Context()
+	log := utils.LoggerFromContext(ctx)
+
+	var req models.PrivateAccessIDsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("Failed to bind JSON for private access IDs request")
+		utils.RespondBadRequest(c, err, "Invalid request format")
+		return
+	}
+
+	// Split the comma-separated string into an array of IDs
+	accessIDs := strings.Split(req.AccessIDs, ",")
+	log.Info().Strs("accessIDs", accessIDs).Msg("Retrieving pastes by multiple private access IDs")
+
+	pastes, err := h.pasteService.GetByPrivateAccessIDs(ctx, accessIDs)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to retrieve pastes by private access IDs")
+		utils.RespondInternalError(c, err, "Failed to retrieve pastes")
+		return
+	}
+
+	log.Info().Int("count", len(pastes)).Msg("Successfully retrieved pastes by private access IDs")
+
+	pasteListData := models.PasteListData{
+		Pastes: pastes,
+		Count:  len(pastes),
+	}
+	utils.RespondOK(c, pasteListData, "Pastes retrieved successfully")
 }

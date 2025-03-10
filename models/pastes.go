@@ -67,3 +67,10 @@ type PasteListData struct {
 	Pastes []Paste `json:"pastes,omitempty"`
 	Count  int     `json:"count,omitempty"`
 }
+
+// PrivateAccessIDsRequest represents a request containing multiple private access IDs
+type PrivateAccessIDsRequest struct {
+	AccessIDs string `json:"accessIds" binding:"required" example:"abc123,def456,ghi789"`
+}
+
+const PasswordProtectedContentPlaceholder = "[Password protected content]"
