@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
 	"memoria-backend/models"
 	"memoria-backend/services"
 	"memoria-backend/utils"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
+	"time"
 )
 
 type PasteHandler struct {
@@ -15,6 +16,20 @@ type PasteHandler struct {
 
 func NewPasteHandler(pasteService services.PasteService) *PasteHandler {
 	return &PasteHandler{pasteService: pasteService}
+}
+
+func IsPasteExpired(paste *models.Paste) error {
+	// If the paste has no expiration time, it never expires
+	if paste.ExpiresAt.IsZero() {
+		return nil
+	}
+
+	// Check if the current time is past the expiration time
+	if time.Now().After(paste.ExpiresAt) {
+		return fmt.Errorf("paste has expired")
+	}
+
+	return nil
 }
 
 // CreatePaste godoc
@@ -94,6 +109,12 @@ func (h *PasteHandler) GetPaste(c *gin.Context) {
 	if err != nil {
 		log.Error().Err(err).Uint64("pasteId", id).Msg("Failed to retrieve paste")
 		utils.RespondNotFound(c, err, "Paste not found")
+		return
+	}
+	// Check if paste is expired
+	if err := IsPasteExpired(paste); err != nil {
+		log.Info().Err(err).Uint64("pasteId", id).Msg("Attempted to access expired paste")
+		utils.RespondNotFound(c, err, "This paste has expired and is no longer available")
 		return
 	}
 
@@ -276,6 +297,13 @@ func (h *PasteHandler) GetPasteByPrivateAccessID(c *gin.Context) {
 	if err != nil {
 		log.Error().Err(err).Str("privateAccessId", accessID).Msg("Failed to retrieve paste")
 		utils.RespondNotFound(c, err, "Paste not found")
+		return
+	}
+	// Check if paste is expired
+
+	if err := IsPasteExpired(paste); err != nil {
+		log.Info().Err(err).Uint64("pasteId", paste.ID).Msg("Attempted to access expired paste")
+		utils.RespondNotFound(c, err, "This paste has expired and is no longer available")
 		return
 	}
 

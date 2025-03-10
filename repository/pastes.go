@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"memoria-backend/models"
-
 	"gorm.io/gorm"
+	"memoria-backend/models"
+	"time"
 )
 
 type PasteRepository interface {
@@ -29,7 +29,7 @@ func NewPasteRepository(db *gorm.DB) PasteRepository {
 func (r *pasteRepository) GetAll(ctx context.Context) ([]models.Paste, error) {
 	var pastes []models.Paste
 
-	result := r.db.Where("privacy = ?", "public").Find(&pastes)
+	result := r.db.Where("privacy = ?", "public").Where("expires_at IS NULL OR expires_at > ?", time.Now()).Find(&pastes)
 	return pastes, result.Error
 }
 
